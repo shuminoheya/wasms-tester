@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RNNoise WASM Demo</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --border: #2a2f3a;
+    --accent: #4ade80;
+    --accent-dim: #1a3a25;
+    --red: #f87171;
+    --red-dim: #3a1a1a;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --mono: 'JetBrains Mono', 'Fira Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  header h1 span {
+    color: var(--accent);
+  }
+
+  header p {
+    color: var(--muted);
+    margin-top: 8px;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  /* VU meter */
+  .vu-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+  }
+
+  .vu-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .vu-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .vu-bar-wrap {
+    width: 100%;
+    height: 100px;
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .vu-bar {
+    width: 100%;
+    transition: height 0.05s ease-out;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .vu-bar.input  { background: linear-gradient(to top, #3b82f6, #60a5fa); height: 0%; }
+  .vu-bar.output { background: linear-gradient(to top, var(--accent), #86efac); height: 0%; }
+
+  .vu-db {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* Waveform */
+  canvas {
+    width: 100%;
+    height: 100px;
+    border-radius: 8px;
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  .canvas-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .canvas-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  /* Noise meter */
+  .noise-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+  }
+
+  .noise-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .noise-track {
+    flex: 1;
+    height: 6px;
+    background: #0a0c10;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .noise-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    transition: width 0.1s, background 0.2s;
+    background: var(--accent);
+  }
+
+  .noise-val {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Controls */
+  .ctrl-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-start { background: var(--accent); color: #0a0c10; }
+  .btn-stop  { background: var(--red); color: #fff; }
+  .btn-download { background: var(--border); color: var(--text); border: 1px solid var(--muted); }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .toggle-row span {
+    font-size: 0.875rem;
+  }
+
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 99px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  /* Status */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 14px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .status-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .log {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    line-height: 1.6;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+
+  .log span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RNNoise <span>WASM</span> Demo</h1>
+  <p>リアルタイム RNN ノイズ抑制 — マイク入力をリアルタイムで処理します</p>
+</header>
+
+<div class="card">
+  <h2>コントロール</h2>
+
+  <div class="toggle-row">
+    <span>ノイズ抑制を有効にする</span>
+    <label class="toggle">
+      <input type="checkbox" id="enableToggle" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="btn-start" id="btnStart">▶ 開始</button>
+    <button class="btn-stop"  id="btnStop"  disabled>■ 停止</button>
+    <button class="btn-download" id="btnDownload" disabled>↓ 録音をDL</button>
+  </div>
+
+  <div class="status">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">待機中 — RNNoise を読み込み中...</span>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<div class="card">
+  <h2>波形</h2>
+  <div class="canvas-row">
+    <div>
+      <div class="canvas-label">入力（処理前）</div>
+      <canvas id="cvIn"></canvas>
+    </div>
+    <div>
+      <div class="canvas-label">出力（ノイズ除去後）</div>
+      <canvas id="cvOut"></canvas>
+    </div>
+  </div>
+
+  <div class="vu-row">
+    <div class="vu-col">
+      <div class="vu-label">入力</div>
+      <div class="vu-bar-wrap"><div class="vu-bar input" id="vuIn"></div></div>
+      <div class="vu-db" id="dbIn">— dB</div>
+    </div>
+    <div class="vu-col">
+      <div class="vu-label">出力</div>
+      <div class="vu-bar-wrap"><div class="vu-bar output" id="vuOut"></div></div>
+      <div class="vu-db" id="dbOut">— dB</div>
+    </div>
+  </div>
+
+  <div class="noise-row">
+    <span class="noise-label">ノイズ確率</span>
+    <div class="noise-track"><div class="noise-fill" id="noiseFill"></div></div>
+    <span class="noise-val" id="noiseVal">-</span>
+  </div>
+</div>
+
+<script type="module">
+// ─── 定数 ──────────────────────────────────────────────────────────────
+const FRAME_SIZE   = 480;   // RNNoise は 10ms @ 48kHz = 480サンプル
+const SAMPLE_RATE  = 48000;
+
+// ─── UI ───────────────────────────────────────────────────────────────
+const btnStart   = document.getElementById('btnStart');
+const btnStop    = document.getElementById('btnStop');
+const btnDL      = document.getElementById('btnDownload');
+const toggle     = document.getElementById('enableToggle');
+const statusDot  = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const logEl      = document.getElementById('log');
+
+const cvIn  = document.getElementById('cvIn');
+const cvOut = document.getElementById('cvOut');
+const ctxIn  = cvIn.getContext('2d');
+const ctxOut = cvOut.getContext('2d');
+
+const vuIn  = document.getElementById('vuIn');
+const vuOut = document.getElementById('vuOut');
+const dbIn  = document.getElementById('dbIn');
+const dbOut = document.getElementById('dbOut');
+const noiseFill = document.getElementById('noiseFill');
+const noiseVal  = document.getElementById('noiseVal');
+
+function log(msg, type = '') {
+  const s = document.createElement('div');
+  s.innerHTML = type === 'ok'
+    ? `<span>[OK]</span> ${msg}`
+    : `[--] ${msg}`;
+  logEl.appendChild(s);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setStatus(text, active = false) {
+  statusText.textContent = text;
+  statusDot.classList.toggle('active', active);
+}
+
+// ─── RNNoise ロード ────────────────────────────────────────────────────
+let rnnoiseModule = null;
+let rnState       = null;
+let inPtr = null, outPtr = null;
+
+async function loadRNNoise() {
+  try {
+    // ES module 形式でないので動的 import は使えない → script タグで読むああ
+const mod = await import('./rnnoise.js');
+
+rnnoiseModule = await mod.default({
+  locateFile: (file) => {
+    if (file.endsWith('.wasm')) {
+      return './rnnoise.wasm';
+    }
+    return file;
+  }
+});
+
+if (rnnoiseModule.ready) {
+  await rnnoiseModule.ready;
+}
+    
+    rnState = rnnoiseModule._rnnoise_create(0);
+    inPtr   = rnnoiseModule._malloc(FRAME_SIZE * 4);
+    outPtr  = rnnoiseModule._malloc(FRAME_SIZE * 4);
+
+    log('RNNoise WASM 初期化完了', 'ok');
+    setStatus('準備完了 — 開始ボタンを押してください');
+    btnStart.disabled = false;
+  } catch (e) {
+    log(e.message);
+    setStatus('エラー: ' + e.message);
+  }
+}
+
+// ─── Audio 処理 ────────────────────────────────────────────────────────
+let audioCtx   = null;
+let sourceNode = null;
+let processorNode = null;
+let mediaStream = null;
+let recordedChunks = { raw: [], denoised: [] };
+let lastNoiseProb = 0;
+let displayInBuf  = new Float32Array(480);
+let displayOutBuf = new Float32Array(480);
+
+// ScriptProcessor の代わりに AudioWorklet が理想だが、
+// rnnoise-sync.js を使えば Worklet 内で動かせる。
+// ここでは ScriptProcessor で動作させる（シンプルなデモ用途）
+async function startProcessing() {
+  audioCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
+  mediaStream = await navigator.mediaDevices.getUserMedia({ audio: {
+    echoCancellation: false,
+    noiseSuppression: false,  // OS側のノイズ抑制は切る
+    autoGainControl: false,
+    sampleRate: SAMPLE_RATE
+  }});
+
+  sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+
+  // ScriptProcessor (非推奨だが広くサポートされている)
+  const bufSize = 4096;
+  processorNode = audioCtx.createScriptProcessor(bufSize, 1, 1);
+
+  // RNNoise はモノラル float32 480サンプル単位で処理
+  let inputRingBuf  = new Float32Array(bufSize * 2);
+  let outputRingBuf = new Float32Array(bufSize * 2);
+  let ringHead = 0;
+  let ringTail = 0;
+  let outHead  = 0;
+  let outTail  = 0;
+
+  processorNode.onaudioprocess = (e) => {
+    const input  = e.inputBuffer.getChannelData(0);
+    const output = e.outputBuffer.getChannelData(0);
+
+    // 録音バッファ
+    recordedChunks.raw.push(new Float32Array(input));
+
+    // リングバッファに積む
+    for (let i = 0; i < input.length; i++) {
+      inputRingBuf[ringHead % inputRingBuf.length] = input[i];
+      ringHead++;
+    }
+
+    // 480サンプル単位で処理
+    while (ringHead - ringTail >= FRAME_SIZE) {
+      const frame = new Float32Array(FRAME_SIZE);
+      for (let i = 0; i < FRAME_SIZE; i++) {
+        frame[i] = inputRingBuf[(ringTail + i) % inputRingBuf.length];
+      }
+      ringTail += FRAME_SIZE;
+
+      let outFrame;
+      if (toggle.checked && rnnoiseModule && rnState) {
+        // float32 → int16スケール (rnnoise が期待するレンジ)
+        const heap = new Float32Array(rnnoiseModule.HEAPF32.buffer, inPtr, FRAME_SIZE);
+        for (let i = 0; i < FRAME_SIZE; i++) heap[i] = frame[i] * 32768;
+
+        const prob = rnnoiseModule._rnnoise_process_frame(rnState, outPtr, inPtr);
+        lastNoiseProb = prob;
+
+        const outHeap = new Float32Array(rnnoiseModule.HEAPF32.buffer, outPtr, FRAME_SIZE);
+        outFrame = new Float32Array(FRAME_SIZE);
+        for (let i = 0; i < FRAME_SIZE; i++) outFrame[i] = outHeap[i] / 32768;
+      } else {
+        outFrame = frame;
+      }
+
+      // 表示用に最後のフレームを保持
+      displayInBuf.set(frame);
+      displayOutBuf.set(outFrame);
+
+      for (let i = 0; i < FRAME_SIZE; i++) {
+        outputRingBuf[(outHead + i) % outputRingBuf.length] = outFrame[i];
+      }
+      outHead += FRAME_SIZE;
+      recordedChunks.denoised.push(new Float32Array(outFrame));
+    }
+
+    // 出力
+    for (let i = 0; i < output.length; i++) {
+      if (outHead - outTail > 0) {
+        output[i] = outputRingBuf[outTail % outputRingBuf.length];
+        outTail++;
+      } else {
+        output[i] = 0;
+      }
+    }
+  };
+
+  sourceNode.connect(processorNode);
+  processorNode.connect(audioCtx.destination);
+
+  btnStart.disabled = true;
+  btnStop.disabled  = false;
+  setStatus('処理中...', true);
+  log('マイク取得 & RNNoise 処理開始', 'ok');
+  startVisualization();
+}
+
+function stopProcessing() {
+  if (processorNode) { processorNode.disconnect(); processorNode = null; }
+  if (sourceNode)    { sourceNode.disconnect();    sourceNode = null; }
+  if (mediaStream)   { mediaStream.getTracks().forEach(t => t.stop()); }
+  if (audioCtx)      { audioCtx.close(); audioCtx = null; }
+
+  btnStart.disabled = false;
+  btnStop.disabled  = true;
+  if (recordedChunks.denoised.length > 0) btnDL.disabled = false;
+  setStatus('停止しました');
+  log('処理停止');
+  animRunning = false;
+}
+
+// ─── 波形表示 ──────────────────────────────────────────────────────────
+let animRunning = false;
+
+function drawWaveform(canvas, ctx, buf, colorStr) {
+  const W = canvas.width = canvas.clientWidth;
+  const H = canvas.height = 100;
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.strokeStyle = colorStr;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  const step = buf.length / W;
+  for (let x = 0; x < W; x++) {
+    const i = Math.floor(x * step);
+    const y = (1 - buf[i]) / 2 * H;
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+function rms(buf) {
+  let s = 0;
+  for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+  return Math.sqrt(s / buf.length);
+}
+
+function startVisualization() {
+  animRunning = true;
+  function frame() {
+    if (!animRunning) return;
+
+    drawWaveform(cvIn,  ctxIn,  displayInBuf,  '#60a5fa');
+    drawWaveform(cvOut, ctxOut, displayOutBuf, '#4ade80');
+
+    const rmsI = rms(displayInBuf);
+    const rmsO = rms(displayOutBuf);
+    const dbI  = rmsI > 0 ? 20 * Math.log10(rmsI) : -100;
+    const dbO  = rmsO > 0 ? 20 * Math.log10(rmsO) : -100;
+
+    const pctI = Math.max(0, Math.min(100, (dbI + 60) / 60 * 100));
+    const pctO = Math.max(0, Math.min(100, (dbO + 60) / 60 * 100));
+
+    vuIn.style.height  = pctI + '%';
+    vuOut.style.height = pctO + '%';
+    dbIn.textContent   = dbI.toFixed(1)  + ' dB';
+    dbOut.textContent  = dbO.toFixed(1)  + ' dB';
+
+    const np = (lastNoiseProb * 100);
+    noiseFill.style.width = np + '%';
+    noiseFill.style.background = np > 70 ? '#f87171' : np > 40 ? '#fbbf24' : '#4ade80';
+    noiseVal.textContent = np.toFixed(0) + '%';
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+// ─── 録音ダウンロード ──────────────────────────────────────────────────
+function chunksToWav(chunks) {
+  const total = chunks.reduce((a, c) => a + c.length, 0);
+  const pcm   = new Float32Array(total);
+  let off = 0;
+  for (const c of chunks) { pcm.set(c, off); off += c.length; }
+
+  // Float32 → Int16
+  const int16 = new Int16Array(pcm.length);
+  for (let i = 0; i < pcm.length; i++) {
+    int16[i] = Math.max(-32768, Math.min(32767, pcm[i] * 32767));
+  }
+
+  // WAVヘッダー
+  const buf = new ArrayBuffer(44 + int16.byteLength);
+  const view = new DataView(buf);
+  const ch = 1, sr = SAMPLE_RATE, bps = 16;
+  const byteRate = sr * ch * bps / 8;
+  const blockAlign = ch * bps / 8;
+
+  const w = (off, val, size) => size === 4 ? view.setUint32(off, val, true) : size === 2 ? view.setUint16(off, val, true) : view.setUint8(off, val);
+  const ws = (off, str) => [...str].forEach((c, i) => view.setUint8(off + i, c.charCodeAt(0)));
+
+  ws(0, 'RIFF');
+  w(4,  36 + int16.byteLength, 4);
+  ws(8, 'WAVE');
+  ws(12, 'fmt ');
+  w(16, 16, 4); w(20, 1, 2); w(22, ch, 2);
+  w(24, sr, 4); w(28, byteRate, 4); w(32, blockAlign, 2); w(34, bps, 2);
+  ws(36, 'data');
+  w(40, int16.byteLength, 4);
+  new Int16Array(buf, 44).set(int16);
+
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+btnDL.addEventListener('click', () => {
+  const blob = chunksToWav(recordedChunks.denoised);
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'rnnoise-output.wav';
+  a.click();
+  log('WAVファイルをダウンロード', 'ok');
+});
+
+// ─── ボタン ────────────────────────────────────────────────────────────
+btnStart.disabled = true;
+btnStart.addEventListener('click', () => {
+  recordedChunks = { raw: [], denoised: [] };
+  btnDL.disabled = true;
+  startProcessing().catch(e => {
+    log('エラー: ' + e.message);
+    setStatus('エラー: ' + e.message);
+  });
+});
+btnStop.addEventListener('click', stopProcessing);
+
+// ─── 起動 ─────────────────────────────────────────────────────────────
+setStatus('RNNoise WASM を読み込み中...');
+loadRNNoise();
+</script>
+</body>
+</html>
