@@ -1,0 +1,554 @@
+
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>東方旧作セレクター</title>
+  <style>
+    :root {
+      --bg: #0b0b15;
+      --card-bg: #181824;
+      --accent: #e94f9b;
+      --accent-soft: rgba(233, 79, 155, 0.25);
+      --text-main: #f5f5ff;
+      --text-sub: #b3b3d1;
+      --border-soft: rgba(255, 255, 255, 0.08);
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(233, 79, 155, 0.25), transparent 55%),
+        radial-gradient(circle at 80% 80%, rgba(79, 140, 233, 0.25), transparent 55%),
+        var(--bg);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .frame {
+      width: 100%;
+      max-width: 960px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.4));
+      border-radius: 24px;
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      padding: 28px 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .frame::before,
+    .frame::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .frame::before {
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(233, 79, 155, 0.5), transparent 60%);
+      top: -80px;
+      right: -40px;
+    }
+
+    .frame::after {
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(79, 140, 233, 0.45), transparent 60%);
+      bottom: -120px;
+      left: -40px;
+    }
+
+    .header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .title-block {
+      max-width: 70%;
+    }
+
+    .title {
+      font-size: 1.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent-soft);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 720px) {
+      .content {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .title-block {
+        max-width: 100%;
+      }
+    }
+
+    .selector-card {
+      background: rgba(12, 12, 24, 0.9);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      padding: 18px 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .selector-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(233, 79, 155, 0.18), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .selector-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .selector-label {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .select-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .select-wrapper {
+      position: relative;
+      flex: 1;
+    }
+
+    select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(5, 5, 15, 0.9);
+      color: var(--text-main);
+      padding: 10px 40px 10px 14px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(233, 79, 155, 0.4);
+      background: rgba(10, 10, 22, 0.95);
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 0.7rem;
+      color: var(--text-sub);
+    }
+
+    .go-button {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: radial-gradient(circle at 0 0, #ff7bbd, #e94f9b);
+      color: #1a0b16;
+      font-weight: 600;
+      box-shadow: 0 10px 24px rgba(233, 79, 155, 0.55);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .go-button span {
+      font-size: 1rem;
+    }
+
+    .go-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 14px 30px rgba(233, 79, 155, 0.7);
+    }
+
+    .go-button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(233, 79, 155, 0.45);
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .chip {
+      font-size: 0.7rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-sub);
+      backdrop-filter: blur(6px);
+    }
+
+    .chip.main {
+      border-color: var(--accent-soft);
+      color: var(--accent);
+      background: rgba(233, 79, 155, 0.08);
+    }
+
+    .note {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      opacity: 0.9;
+    }
+
+    .note strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .preview-card {
+      background: rgba(5, 5, 15, 0.9);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 100% 0, rgba(79, 140, 233, 0.2), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .preview-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .preview-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-sub);
+    }
+
+    .preview-pill {
+      font-size: 0.7rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(79, 140, 233, 0.4);
+      color: #9bbcff;
+      background: rgba(79, 140, 233, 0.12);
+    }
+
+    .preview-main {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .preview-circle {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 210deg,
+        rgba(233, 79, 155, 0.9),
+        rgba(79, 140, 233, 0.9),
+        rgba(233, 79, 155, 0.9)
+      );
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18px rgba(233, 79, 155, 0.6);
+    }
+
+    .preview-circle-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #ffffff, #0b0b15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #1a0b16;
+      font-weight: 700;
+    }
+
+    .preview-texts {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .preview-game-title {
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .preview-game-sub {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .preview-path {
+      font-size: 0.72rem;
+      color: #9bbcff;
+      opacity: 0.9;
+    }
+
+    .preview-path code {
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.72rem;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(155, 188, 255, 0.35);
+    }
+
+    .preview-footer {
+      display: flex;
+      justify-content: flex-end;
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #7bffb4, #1f8a4f);
+      box-shadow: 0 0 8px rgba(123, 255, 180, 0.9);
+    }
+
+    .status {
+      font-size: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="header">
+      <div class="title-block">
+        <div class="title">東方 Project - 旧作ランチャー</div>
+
+      </div>
+      <div class="tag">たのしくないよ</div>
+    </div>
+
+    <div class="content">
+      <!-- 左：セレクター -->
+      <div class="selector-card">
+        <div class="selector-inner">
+          <div class="selector-label">Select title</div>
+
+          <div class="select-row">
+            <div class="select-wrapper">
+              <select id="gameSelect">
+                <option value="th1.html">東方靈異伝</option>
+                <option value="th2.html">東方封魔録</option>
+                <option value="th3.html">東方夢時空</option>
+                <option value="th4.html">東方幻想郷</option>
+                <option value="th5.html">東方怪綺談</option>
+              </select>
+              <div class="select-arrow">▼</div>
+            </div>
+
+            <button class="go-button" onclick="goToGame()">
+              開く
+              <span>↗</span>
+            </button>
+          </div>
+<<a href="./help.html">こまった？よ</a>
+         
+
+          
+
+          
+        </div>
+      </div>
+
+      <!-- 右：プレビュー / 情報 -->
+      <div class="preview-card">
+        <div class="preview-inner">
+          <div class="preview-header">
+            <div class="preview-title">Current selection</div>
+            <div class="preview-pill" id="previewShort">TH01</div>
+          </div>
+
+          <div class="preview-main">
+            <div class="preview-circle">
+              <div class="preview-circle-inner" id="previewCircleText">TH01</div>
+            </div>
+
+            <div class="preview-texts">
+              <div class="preview-game-title" id="previewTitle">東方靈異伝</div>
+              <div class="preview-game-sub" id="previewSub">～ The Highly Responsive to Prayers.</div>
+              <div class="preview-path">
+                path:
+                <code id="previewPath">./th11.html</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-footer">
+            <div class="dot"></div>
+            <div class="status" id="previewStatus">DOSの読み込みは自動でされます</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const select = document.getElementById("gameSelect");
+    const previewShort = document.getElementById("previewShort");
+    const previewCircleText = document.getElementById("previewCircleText");
+    const previewTitle = document.getElementById("previewTitle");
+    const previewSub = document.getElementById("previewSub");
+    const previewPath = document.getElementById("previewPath");
+    const previewStatus = document.getElementById("previewStatus");
+
+    const data = {
+      "th1.html": {
+        short: "TH01",
+        title: "東方靈異伝",
+        sub: "～ The Highly Responsive to Prayers.",
+      },
+      "th2.html": {
+        short: "TH02",
+        title: "東方封魔録",
+        sub: "～ the Story of Eastern Wonderland.",
+      },
+      "th3.html": {
+        short: "TH03",
+        title: "東方夢時空",
+        sub: "～ Phantasmagoria of Dim.Dream.",
+      },
+      "th4.html": {
+        short: "TH04",
+        title: "東方幻想郷",
+        sub: "～ Lotus Land Story.",
+      },
+      "th5.html": {
+        short: "TH05",
+        title: "東方怪綺談",
+        sub: "～ Mystic Square.",
+      },
+    };
+
+    function updatePreview() {
+      const value = select.value;
+      const info = data[value];
+
+      previewShort.textContent = info.short;
+      previewCircleText.textContent = info.short;
+      previewTitle.textContent = info.title;
+      previewSub.textContent = info.sub;
+      previewPath.textContent = "./" + value;
+      previewStatus.textContent = info.title + "を開始します";
+    }
+
+    function goToGame() {
+      const value = select.value;
+      window.location.href = value; // 同じディレクトリの th1.html ～ th5.html へ遷移
+    }
+
+    select.addEventListener("change", updatePreview);
+    updatePreview();
+  </script>
+</body>
+</html>
