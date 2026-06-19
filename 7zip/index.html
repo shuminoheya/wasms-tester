@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>7zip Explorer</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.0.0/encoding.min.js"></script>
+<script src="7zz.umd.js"></script>
+
+<style>
+body { margin: 0; font-family: system-ui, sans-serif; }
+.toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: #f0f0f0;
+  border-bottom: 1px solid #ccc; font-size: 14px;
+}
+.explorer { display: flex; height: calc(100vh - 40px); }
+.tree {
+  width: 260px; border-right: 1px solid #ccc;
+  padding: 8px; overflow-y: auto; font-size: 13px;
+}
+.content { flex: 1; display: flex; flex-direction: column; }
+#fileList {
+  flex: 1; padding: 8px; border-bottom: 1px solid #ccc;
+  overflow-y: auto; font-size: 13px;
+}
+#preview { flex: 1; padding: 8px; overflow: auto; font-size: 13px; }
+
+ul { list-style: none; padding-left: 16px; margin: 0; }
+li { cursor: pointer; padding: 2px 0; }
+li:hover { background: #eee; }
+
+.file-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 4px; cursor: pointer;
+}
+.file-item:hover { background: #e6f2ff; }
+.icon { width: 18px; text-align: center; }
+.name {
+  flex: 1; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.download-link { font-size: 12px; text-decoration: none; }
+
+#contextMenu {
+  position: fixed; display: none; background: #fff;
+  border: 1px solid #ccc; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000; font-size: 13px;
+}
+#contextMenu ul { list-style: none; margin: 0; padding: 4px 0; }
+#contextMenu li { padding: 4px 16px; cursor: pointer; }
+#contextMenu li:hover { background: #e6f2ff; }
+
+.compress-box {
+  display: flex; align-items: center; gap: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div>
+    展開: <input type="file" id="file">
+  </div>
+
+  <div class="compress-box">
+    圧縮形式:
+    <select id="compressType">
+      <option value="zip">ZIP</option>
+      <option value="7z">7z</option>
+    </select>
+    <button id="btnCompress">展開した内容を圧縮</button>
+  </div>
+</div>
+
+<div class="explorer">
+  <div class="tree" id="tree">読み込み待ち</div>
+  <div class="content">
+    <div id="fileList"></div>
+    <div id="preview"></div>
+  </div>
+</div>
+
+<div id="contextMenu">
+  <ul>
+    <li data-action="preview">プレビュー</li>
+    <li data-action="download">ダウンロード</li>
+    <li data-action="copyPath">パスをコピー</li>
+  </ul>
+</div>
+
+<script>
+let sz = null;
+let entries = [];
+let folderTree = {};
+let currentContextEntry = null;
+
+(async () => {
+  sz = await SevenZip({
+    locateFile: (p) => p,
+    print: console.log,
+    printErr: console.error
+  });
+  console.log("7z-wasm ready");
+})();
+
+document.getElementById("file").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (file) await loadArchive(file);
+});
+
+async function loadArchive(file){
+  entries = [];
+  folderTree = {};
+  document.getElementById("tree").textContent = "展開中…";
+
+  const buf = new Uint8Array(await file.arrayBuffer());
+
+  cleanFSAll();
+
+  sz.FS.writeFile(file.name, buf);
+  sz.callMain(["x", file.name, "-y"]);
+
+  // 元アーカイブは FS から削除
+  try { sz.FS.unlink("/" + file.name); } catch {}
+
+  const paths = listAllFiles("/");
+
+  for (const path of paths) {
+    let data;
+    try {
+      data = sz.FS.readFile(path);
+    } catch {
+      continue;
+    }
+    const blob = new Blob([data]);
+    entries.push({
+      path: path.replace(/^\//, ""),
+      file: blob
+    });
+  }
+
+  buildTree();
+  renderTree();
+  document.getElementById("fileList").textContent = "フォルダを選択してください。";
+}
+
+function normalizePath(p){
+  return ("/" + p).replace(/\/+/g, "/");
+}
+
+// 仮想 FS の dev/home/proc/tmp は残しつつ、それ以外を走査
+function listAllFiles(dir){
+  let result = [];
+  let entriesFS;
+  dir = normalizePath(dir);
+
+  try {
+    entriesFS = sz.FS.readdir(dir);
+  } catch {
+    return result;
+  }
+
+  for (const e of entriesFS){
+    if (e === "." || e === "..") continue;
+
+    const full = normalizePath(dir + "/" + e);
+
+    let stat;
+    try {
+      stat = sz.FS.stat(full);
+    } catch {
+      continue;
+    }
+
+    if (sz.FS.isDir(stat.mode)){
+      // 仮想ディレクトリはスキップ
+      if (full === "/dev" || full === "/proc" || full === "/home" || full === "/tmp") {
+        continue;
+      }
+      result = result.concat(listAllFiles(full));
+    } else {
+      result.push(full);
+    }
+  }
+  return result;
+}
+
+// 仮想 FS から展開物だけ削除（dev/home/proc/tmp は残す）
+function cleanFSAll(){
+  try {
+    const all = listAllFiles("/");
+    for (const f of all){
+      try { sz.FS.unlink(f); } catch {}
+    }
+  } catch {}
+}
+
+function buildTree(){
+  folderTree = {};
+  for(const entry of entries){
+    const parts = entry.path.split("/");
+    let node = folderTree;
+    for(let i=0;i<parts.length;i++){
+      const p = parts[i];
+      if(!node[p]) node[p] = { __files: [], __folders: {} };
+      if(i === parts.length - 1){
+        node[p].__files.push(entry);
+      } else {
+        node = node[p].__folders;
+      }
+    }
+  }
+}
+
+function renderTree(){
+  const tree = document.getElementById("tree");
+  tree.innerHTML = "";
+  const ul = document.createElement("ul");
+  for(const name in folderTree){
+    ul.appendChild(createFolderNode(name, folderTree[name]));
+  }
+  tree.appendChild(ul);
+}
+
+function createFolderNode(name, node){
+  const li = document.createElement("li");
+  li.textContent = "📁 " + name;
+  li.onclick = e => {
+    e.stopPropagation();
+    showFolder(node);
+  };
+  const sub = node.__folders;
+  if(Object.keys(sub).length){
+    const ul = document.createElement("ul");
+    for(const s in sub){
+      ul.appendChild(createFolderNode(s, sub[s]));
+    }
+    li.appendChild(ul);
+  }
+  return li;
+}
+
+function showFolder(folder){
+  const list = document.getElementById("fileList");
+  list.innerHTML = "";
+  document.getElementById("preview").innerHTML = "";
+
+  folder.__files.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "file-item";
+
+    const icon = document.createElement("span");
+    icon.className = "icon";
+    icon.textContent = getIcon(entry);
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "name";
+    nameSpan.textContent = entry.path.split("/").pop();
+
+    const dl = document.createElement("a");
+    dl.className = "download-link";
+    dl.textContent = "⬇";
+    dl.href = URL.createObjectURL(entry.file);
+    dl.download = entry.path.split("/").pop();
+
+    div.appendChild(icon);
+    div.appendChild(nameSpan);
+    div.appendChild(dl);
+
+    div.onclick = () => previewFile(entry);
+
+    div.oncontextmenu = e => {
+      e.preventDefault();
+      currentContextEntry = entry;
+      showContextMenu(e.clientX, e.clientY);
+    };
+
+    list.appendChild(div);
+  });
+}
+
+function getIcon(entry){
+  const name = entry.path.toLowerCase();
+  if(name.match(/\.(png|jpg|jpeg|gif|webp)$/)) return "🖼";
+  if(name.match(/\.(txt|html|css|js)$/)) return "📄";
+  return "📃";
+}
+
+function previewFile(entry){
+  const preview = document.getElementById("preview");
+  preview.textContent = "読み込み中…";
+
+  const name = entry.path.toLowerCase();
+
+  if(name.match(/\.(png|jpg|jpeg|gif|webp)$/)){
+    preview.innerHTML = `<img src="${URL.createObjectURL(entry.file)}" style="max-width:100%;">`;
+    return;
+  }
+
+  if(name.match(/\.(txt|html|css|js)$/)){
+    const reader = new FileReader();
+    reader.onload = ({target}) => {
+      const bytes = new Uint8Array(target.result);
+      const detected = Encoding.detect(bytes);
+      const utf8 = Encoding.convert(bytes, {to:"UNICODE", from:detected, type:"string"});
+      preview.innerHTML = `<pre>${escapeHtml(utf8)}</pre>`;
+    };
+    reader.readAsArrayBuffer(entry.file);
+    return;
+  }
+
+  preview.textContent = "プレビュー非対応のファイルです。";
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function showContextMenu(x,y){
+  const menu = document.getElementById("contextMenu");
+  menu.style.left = x+"px";
+  menu.style.top = y+"px";
+  menu.style.display = "block";
+}
+
+document.addEventListener("click", () => {
+  document.getElementById("contextMenu").style.display = "none";
+});
+
+document.getElementById("contextMenu").onclick = e => {
+  const li = e.target.closest("li");
+  if(!li || !currentContextEntry) return;
+
+  const action = li.dataset.action;
+
+  if(action === "preview"){
+    previewFile(currentContextEntry);
+  } else if(action === "download"){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(currentContextEntry.file);
+    a.download = currentContextEntry.path.split("/").pop();
+    a.click();
+  } else if(action === "copyPath"){
+    navigator.clipboard?.writeText(currentContextEntry.path);
+  }
+
+  document.getElementById("contextMenu").style.display = "none";
+};
+
+document.getElementById("btnCompress").onclick = async () => {
+  if(entries.length === 0){
+    alert("展開済みファイルがありません");
+    return;
+  }
+
+  const type = document.getElementById("compressType").value;
+  const outName = type === "zip" ? "archive.zip" : "archive.7z";
+
+  cleanFSAll();
+
+  // 展開した内容だけを書き戻す
+  for(const entry of entries){
+    const buf = new Uint8Array(await entry.file.arrayBuffer());
+    ensureDir(entry.path);
+    sz.FS.writeFile(normalizePath(entry.path), buf);
+  }
+
+  // entries だけを圧縮対象にする
+  const targets = entries.map(e => normalizePath(e.path));
+  sz.callMain(["a", outName, ...targets]);
+
+  const out = sz.FS.readFile(outName);
+  const blob = new Blob([out]);
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = outName;
+  a.click();
+};
+
+function ensureDir(path){
+  const parts = path.split("/");
+  let current = "";
+  for(let i=0;i<parts.length - 1;i++){
+    current += "/" + parts[i];
+    const norm = normalizePath(current);
+    try { sz.FS.mkdir(norm); } catch {}
+  }
+}
+</script>
+
+</body>
+</html>
