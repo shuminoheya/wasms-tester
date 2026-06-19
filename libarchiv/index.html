@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Archive Explorer</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.0.0/encoding.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+body { margin: 0; font-family: sans-serif; }
+.toolbar { display: flex; justify-content: space-between; padding: 8px 12px; background: #f0f0f0; border-bottom: 1px solid #ccc; }
+.explorer { display: flex; height: calc(100vh - 40px); }
+.tree { width: 260px; border-right: 1px solid #ccc; padding: 8px; overflow-y: auto; }
+.content { flex: 1; display: flex; flex-direction: column; }
+#fileList { flex: 1; padding: 8px; border-bottom: 1px solid #ccc; overflow-y: auto; }
+#preview { flex: 1; padding: 8px; overflow: auto; }
+ul { list-style: none; padding-left: 16px; margin: 0; }
+li { cursor: pointer; padding: 2px 0; }
+li:hover { background: #eee; }
+.file-item { display: flex; align-items: center; gap: 8px; padding: 3px 4px; cursor: pointer; }
+.file-item:hover { background: #e6f2ff; }
+.icon { width: 18px; text-align: center; }
+.name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.download-link { font-size: 12px; text-decoration: none; }
+#contextMenu { position: fixed; display: none; background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 6px rgba(0,0,0,0.2); z-index: 1000; }
+#contextMenu li { padding: 4px 16px; cursor: pointer; }
+#contextMenu li:hover { background: #e6f2ff; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div>
+    アーカイブ: <input type="file" id="file">
+  </div>
+  <button id="downloadZip">ZIP ダウンロード</button>
+</div>
+
+<div class="explorer">
+  <div class="tree" id="tree"><ul></ul></div>
+  <div class="content">
+    <div id="fileList"></div>
+    <div id="preview"></div>
+  </div>
+</div>
+
+<div id="contextMenu">
+  <ul>
+    <li data-action="preview">プレビュー</li>
+    <li data-action="download">ダウンロード</li>
+    <li data-action="copyPath">パスをコピー</li>
+  </ul>
+</div>
+
+<script type="module">
+import {Archive} from './main.js';
+
+Archive.init({
+  workerUrl: './worker-bundle.js'
+});
+
+let extractedFiles = [];
+let folderTree = {};
+let currentContextEntry = null;
+let archiveRootName = "";
+
+/* -------------------------
+   アーカイブ読み込み
+------------------------- */
+document.getElementById("file").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) loadArchive(file);
+});
+
+document.body.addEventListener("dragover", e => e.preventDefault());
+document.body.addEventListener("drop", e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) loadArchive(file);
+});
+
+async function loadArchive(file){
+  extractedFiles = [];
+  archiveRootName = file.name;
+
+  const archive = await Archive.open(file);
+  await archive.extractFiles(entry => extractedFiles.push(entry));
+
+  buildTree();
+  renderTree();
+
+  showFolder(folderTree.__folders[archiveRootName]);
+}
+
+/* -------------------------
+   ★ 完全版 buildTree()
+------------------------- */
+function buildTree(){
+  folderTree = { __folders: {}, __files: [] };
+
+  // ★ アーカイブ名をルートフォルダとして作成
+  folderTree.__folders[archiveRootName] = { __folders: {}, __files: [] };
+  const root = folderTree.__folders[archiveRootName];
+
+  for(const entry of extractedFiles){
+    const parts = entry.path.split("/").filter(p => p.length > 0);
+
+    // ★ ルート直下のファイル（eiya_update003a.EXE など）
+    if(parts.length === 1){
+      root.__files.push(entry);
+      continue;
+    }
+
+    // ★ フォルダ階層がある場合
+    let current = root;
+    for(let i = 0; i < parts.length; i++){
+      const part = parts[i];
+
+      if(i === parts.length - 1){
+        current.__files.push(entry);
+      } else {
+        if(!current.__folders[part]){
+          current.__folders[part] = { __folders: {}, __files: [] };
+        }
+        current = current.__folders[part];
+      }
+    }
+  }
+}
+
+/* -------------------------
+   ツリー描画
+------------------------- */
+function renderTree(){
+  const tree = document.getElementById("tree");
+  tree.innerHTML = "";
+
+  const ul = document.createElement("ul");
+  appendFolderNodes(folderTree, ul);
+  tree.appendChild(ul);
+}
+
+function appendFolderNodes(node, parentUl){
+  for(const name in node.__folders){
+    const li = document.createElement("li");
+    li.textContent = "📁 " + name;
+
+    li.onclick = e => {
+      e.stopPropagation();
+      showFolder(node.__folders[name]);
+    };
+
+    const ul = document.createElement("ul");
+    appendFolderNodes(node.__folders[name], ul);
+    li.appendChild(ul);
+
+    parentUl.appendChild(li);
+  }
+}
+
+/* -------------------------
+   ファイル一覧
+------------------------- */
+function showFolder(folder){
+  const list = document.getElementById("fileList");
+  list.innerHTML = "";
+
+  folder.__files.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "file-item";
+
+    const icon = document.createElement("span");
+    icon.className = "icon";
+    icon.textContent = getIcon(entry);
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "name";
+    nameSpan.textContent = entry.path.split("/").pop();
+
+    const dl = document.createElement("a");
+    dl.className = "download-link";
+    dl.textContent = "⬇";
+    dl.href = URL.createObjectURL(entry.file);
+    dl.download = entry.path.split("/").pop();
+
+    div.appendChild(icon);
+    div.appendChild(nameSpan);
+    div.appendChild(dl);
+
+    div.addEventListener("click", () => previewFile(entry));
+
+    div.addEventListener("contextmenu", e => {
+      e.preventDefault();
+      currentContextEntry = entry;
+      showContextMenu(e.clientX, e.clientY);
+    });
+
+    list.appendChild(div);
+  });
+}
+
+function getIcon(entry){
+  const mime = entry.file.type || "";
+  const name = entry.path.toLowerCase();
+  if(mime.startsWith("image/")) return "🖼";
+  if(mime.includes("text") || name.endsWith(".txt") || name.endsWith(".html")) return "📄";
+  return "📃";
+}
+
+/* -------------------------
+   プレビュー
+------------------------- */
+function previewFile(entry){
+  const preview = document.getElementById("preview");
+  preview.textContent = "読み込み中…";
+
+  const mime = entry.file.type || "";
+  const name = entry.path.toLowerCase();
+
+  if(mime.startsWith("image/")){
+    preview.innerHTML = `<img src="${URL.createObjectURL(entry.file)}" style="max-width:100%;">`;
+    return;
+  }
+
+  if(mime.includes("text") || name.endsWith(".txt") || name.endsWith(".html")){
+    const reader = new FileReader();
+    reader.onload = ({target}) => {
+      const bytes = new Uint8Array(target.result);
+      const detected = Encoding.detect(bytes);
+      const utf8 = Encoding.convert(bytes, {to:"UNICODE", from:detected, type:"string"});
+      preview.innerHTML = `<pre>${escapeHtml(utf8)}</pre>`;
+    };
+    reader.readAsArrayBuffer(entry.file);
+    return;
+  }
+
+  preview.textContent = "プレビュー非対応のファイルです。";
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+/* -------------------------
+   右クリックメニュー
+------------------------- */
+const menu = document.getElementById("contextMenu");
+
+function showContextMenu(x, y){
+  menu.style.left = x + "px";
+  menu.style.top = y + "px";
+  menu.style.display = "block";
+}
+
+document.addEventListener("click", () => menu.style.display = "none");
+
+menu.addEventListener("click", e => {
+  const li = e.target.closest("li");
+  if(!li || !currentContextEntry) return;
+
+  const action = li.dataset.action;
+
+  if(action === "preview"){
+    previewFile(currentContextEntry);
+  } else if(action === "download"){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(currentContextEntry.file);
+    a.download = currentContextEntry.path.split("/").pop();
+    a.click();
+  } else if(action === "copyPath"){
+    navigator.clipboard?.writeText(currentContextEntry.path);
+  }
+
+  menu.style.display = "none";
+});
+
+/* -------------------------
+   ZIP ダウンロード
+------------------------- */
+document.getElementById("downloadZip").addEventListener("click", async () => {
+  if(extractedFiles.length === 0){
+    alert("ファイルがありません");
+    return;
+  }
+  const zip = new JSZip();
+  for(const entry of extractedFiles){
+    const buf = await entry.file.arrayBuffer();
+    zip.file(entry.path, buf);
+  }
+  const blob = await zip.generateAsync({type:"blob"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = archiveRootName + ".zip";
+  a.click();
+});
+</script>
+
+</body>
+</html>
