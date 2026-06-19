@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>19時間の努力</title>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    height: 100%;
+    overflow: hidden;
+  }
+  video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    background: black;
+  }
+</style>
+
+<script>
+// iframe 埋め込み拒否
+if (window !== window.top) {
+    document.body.innerHTML = "";
+    document.write("<h1 style='color:white;background:black;text-align:center;padding:50px;'>埋め込みは許可されていません</h1>");
+    throw new Error("Frame blocked");
+}
+</script>
+
+</head>
+<body>
+
+<video id="player" controls></video>
+
+<script>
+async function deriveKey(password, salt){
+  const enc=new TextEncoder();
+  const baseKey=await crypto.subtle.importKey("raw",enc.encode(password),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({
+      name:"PBKDF2",
+      salt:new Uint8Array(salt),
+      iterations:200000,
+      hash:"SHA-256"
+    },
+    baseKey,
+    {name:"AES-GCM",length:256},
+    false,
+    ["decrypt"]
+  );
+}
+
+async function decrypt(key, iv, data){
+  return crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(iv)}, key, data);
+}
+
+(async()=>{
+  const password = prompt("パスワードを入力してください");
+  if(!password) return;
+
+  const manifest = await (await fetch("data/manifest.json")).json();
+  const key = await deriveKey(password, manifest.salt);
+
+  const mime = manifest.mime;
+  const video = document.getElementById("player");
+  const ms = new MediaSource();
+  video.src = URL.createObjectURL(ms);
+
+  let current = 1;
+  const max = manifest.chunks;
+
+  ms.addEventListener("sourceopen", async ()=>{
+    const sb = ms.addSourceBuffer(mime);
+
+    // init
+    await appendInit(sb);
+
+    // 最初のセグメント
+    await loadNext(sb);
+
+    // 再生中のバッファ補充（6秒バッファ）
+    video.addEventListener("timeupdate", async ()=>{
+      if ((current - 1) * 2 - video.currentTime < 6) {
+        await loadNext(sb);
+      }
+    });
+
+    // ★ シーク完全対応（誤差5分）
+    video.addEventListener("seeked", async ()=>{
+      const seg = Math.floor(video.currentTime / 2) + 1;
+      if(seg < 1 || seg > max) return;
+
+      // バッファ完全クリア
+      try { sb.abort(); } catch(e){}
+      try { sb.remove(0, sb.buffered.end(sb.buffered.length - 1)); } catch(e){}
+      await waitUpdate(sb);
+
+      // init 再読み込み
+      await appendInit(sb);
+
+      // ★ 誤差5分：前120セグメントから読み込む
+      let start = seg - 120;
+      if(start < 1) start = 1;
+
+      // ★ 前後含めて150セグメント読み込む
+      current = start;
+      for(let i=0; i<150; i++){
+        await loadNext(sb);
+        if(current > max) break;
+      }
+    });
+  });
+
+  async function appendInit(sb){
+    const res = await fetch("data/init.bin");
+    const enc = await res.arrayBuffer();
+    const dec = await decrypt(key, manifest.ivs[0], enc);
+    await append(sb, dec);
+  }
+
+  async function loadNext(sb){
+    if(current > max) return;
+
+    const num = String(current).padStart(3,"0");
+    const url = `data/chunk_${num}.bin`;
+
+    const res = await fetch(url);
+    const enc = await res.arrayBuffer();
+    const dec = await decrypt(key, manifest.ivs[current], enc);
+
+    await append(sb, dec);
+    current++;
+  }
+
+  function append(sb, buf){
+    return new Promise((resolve, reject)=>{
+      sb.addEventListener("updateend", resolve, {once:true});
+      sb.addEventListener("error", ()=>reject(sb.error), {once:true});
+      sb.appendBuffer(buf);
+    });
+  }
+
+  function waitUpdate(sb){
+    return new Promise(resolve=>{
+      sb.addEventListener("updateend", resolve, {once:true});
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
