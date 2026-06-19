@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+<style>
+/*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+/**
+ * 1. Set default font family to sans-serif.
+ * 2. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,700");
+html {
+  font-family: sans-serif;
+  /* 1 */
+  -ms-text-size-adjust: 100%;
+  /* 2 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */ }
+
+/**
+ * Remove default margin.
+ */
+body {
+  margin: 0; }
+
+/* HTML5 display definitions
+   ========================================================================== */
+/**
+ * Correct `block` display not defined for any HTML5 element in IE 8/9.
+ * Correct `block` display not defined for `details` or `summary` in IE 10/11
+ * and Firefox.
+ * Correct `block` display not defined for `main` in IE 11.
+ */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+  display: block; }
+
+/**
+ * 1. Correct `inline-block` display not defined in IE 8/9.
+ * 2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
+ */
+audio,
+canvas,
+progress,
+video {
+  display: inline-block;
+  /* 1 */
+  vertical-align: baseline;
+  /* 2 */ }
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+audio:not([controls]) {
+  display: none;
+  height: 0; }
+
+/**
+ * Address `[hidden]` styling not present in IE 8/9/10.
+ * Hide the `template` element in IE 8/9/11, Safari, and Firefox < 22.
+ */
+[hidden],
+template {
+  display: none; }
+
+/* Links
+   ========================================================================== */
+/**
+ * Remove the gray background color from active links in IE 10.
+ */
+a {
+  background-color: transparent; }
+
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+a:active,
+a:hover {
+  outline: 0; }
+
+/* Text-level semantics
+   ========================================================================== */
+/**
+ * Address styling not present in IE 8/9/10/11, Safari, and Chrome.
+ */
+abbr[title] {
+  border-bottom: 1px dotted; }
+
+/**
+ * Address style set to `bolder` in Firefox 4+, Safari, and Chrome.
+ */
+b,
+strong {
+  font-weight: bold; }
+
+/**
+ * Address styling not present in Safari and Chrome.
+ */
+dfn {
+  font-style: italic; }
+
+/**
+ * Address variable `h1` font-size and margin within `section` and `article`
+ * contexts in Firefox 4+, Safari, and Chrome.
+ */
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0; }
+
+/**
+ * Address styling not present in IE 8/9.
+ */
+mark {
+  background: #ff0;
+  color: #000; }
+
+/**
+ * Address inconsistent and variable font size in all browsers.
+ */
+small {
+  font-size: 80%; }
+
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline; }
+
+sup {
+  top: -0.5em; }
+
+sub {
+  bottom: -0.25em; }
+
+/* Embedded content
+   ========================================================================== */
+/**
+ * Remove border when inside `a` element in IE 8/9/10.
+ */
+img {
+  border: 0; }
+
+/**
+ * Correct overflow not hidden in IE 9/10/11.
+ */
+svg:not(:root) {
+  overflow: hidden; }
+
+/* Grouping content
+   ========================================================================== */
+/**
+ * Address margin not present in IE 8/9 and Safari.
+ */
+figure {
+  margin: 1em 40px; }
+
+/**
+ * Address differences between Firefox and other browsers.
+ */
+hr {
+  box-sizing: content-box;
+  height: 0; }
+
+/**
+ * Contain overflow in all browsers.
+ */
+pre {
+  overflow: auto; }
+
+/**
+ * Address odd `em`-unit font size rendering in all browsers.
+ */
+code,
+kbd,
+pre,
+samp {
+  font-family: monospace, monospace;
+  font-size: 1em; }
+
+/* Forms
+   ========================================================================== */
+/**
+ * Known limitation: by default, Chrome and Safari on OS X allow very limited
+ * styling of `select`, unless a `border` property is set.
+ */
+/**
+ * 1. Correct color not being inherited.
+ *    Known issue: affects color of disabled elements.
+ * 2. Correct font properties not being inherited.
+ * 3. Address margins set differently in Firefox 4+, Safari, and Chrome.
+ */
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit;
+  /* 1 */
+  font: inherit;
+  /* 2 */
+  margin: 0;
+  /* 3 */ }
+
+/**
+ * Address `overflow` set to `hidden` in IE 8/9/10/11.
+ */
+button {
+  overflow: visible; }
+
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Firefox, IE 8/9/10/11, and Opera.
+ * Correct `select` style inheritance in Firefox.
+ */
+button,
+select {
+  text-transform: none; }
+
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
+ */
+button,
+html input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  -webkit-appearance: button;
+  /* 2 */
+  cursor: pointer;
+  /* 3 */ }
+
+/**
+ * Re-set default cursor for disabled elements.
+ */
+button[disabled],
+html input[disabled] {
+  cursor: default; }
+
+/**
+ * Remove inner padding and border in Firefox 4+.
+ */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0; }
+
+/**
+ * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+input {
+  line-height: normal; }
+
+/**
+ * It's recommended that you don't attempt to style these elements.
+ * Firefox's implementation doesn't respect box-sizing, padding, or width.
+ *
+ * 1. Address box sizing set to `content-box` in IE 8/9/10.
+ * 2. Remove excess padding in IE 8/9/10.
+ */
+input[type="checkbox"],
+input[type="radio"] {
+  box-sizing: border-box;
+  /* 1 */
+  padding: 0;
+  /* 2 */ }
+
+/**
+ * Fix the cursor style for Chrome's increment/decrement buttons. For certain
+ * `font-size` values of the `input`, it causes the cursor style of the
+ * decrement button to change from `default` to `text`.
+ */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  height: auto; }
+
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari and Chrome
+ *    (include `-moz` to future-proof).
+ */
+input[type="search"] {
+  -webkit-appearance: textfield;
+  /* 1 */
+  /* 2 */
+  box-sizing: content-box; }
+
+/**
+ * Remove inner padding and search cancel button in Safari and Chrome on OS X.
+ * Safari (but not Chrome) clips the cancel button when the search input has
+ * padding (and `textfield` appearance).
+ */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none; }
+
+/**
+ * Define consistent border, margin, and padding.
+ */
+fieldset {
+  border: 1px solid #c0c0c0;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em; }
+
+/**
+ * 1. Correct `color` not being inherited in IE 8/9/10/11.
+ * 2. Remove padding so people aren't caught out if they zero out fieldsets.
+ */
+legend {
+  border: 0;
+  /* 1 */
+  padding: 0;
+  /* 2 */ }
+
+/**
+ * Remove default vertical scrollbar in IE 8/9/10/11.
+ */
+textarea {
+  overflow: auto; }
+
+/**
+ * Don't inherit the `font-weight` (applied by a rule above).
+ * NOTE: the default cannot safely be changed in Chrome and Safari on OS X.
+ */
+optgroup {
+  font-weight: bold; }
+
+/* Tables
+   ========================================================================== */
+/**
+ * Remove most spacing between table cells.
+ */
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+td,
+th {
+  padding: 0; }
+
+.highlight table td {
+  padding: 5px; }
+
+.highlight table pre {
+  margin: 0; }
+
+.highlight .cm {
+  color: #999988;
+  font-style: italic; }
+
+.highlight .cp {
+  color: #999999;
+  font-weight: bold; }
+
+.highlight .c1 {
+  color: #999988;
+  font-style: italic; }
+
+.highlight .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic; }
+
+.highlight .c, .highlight .cd {
+  color: #999988;
+  font-style: italic; }
+
+.highlight .err {
+  color: #a61717;
+  background-color: #e3d2d2; }
+
+.highlight .gd {
+  color: #000000;
+  background-color: #ffdddd; }
+
+.highlight .ge {
+  color: #000000;
+  font-style: italic; }
+
+.highlight .gr {
+  color: #aa0000; }
+
+.highlight .gh {
+  color: #999999; }
+
+.highlight .gi {
+  color: #000000;
+  background-color: #ddffdd; }
+
+.highlight .go {
+  color: #888888; }
+
+.highlight .gp {
+  color: #555555; }
+
+.highlight .gs {
+  font-weight: bold; }
+
+.highlight .gu {
+  color: #aaaaaa; }
+
+.highlight .gt {
+  color: #aa0000; }
+
+.highlight .kc {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .kd {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .kn {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .kp {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .kr {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .kt {
+  color: #445588;
+  font-weight: bold; }
+
+.highlight .k, .highlight .kv {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .mf {
+  color: #009999; }
+
+.highlight .mh {
+  color: #009999; }
+
+.highlight .il {
+  color: #009999; }
+
+.highlight .mi {
+  color: #009999; }
+
+.highlight .mo {
+  color: #009999; }
+
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #009999; }
+
+.highlight .sb {
+  color: #d14; }
+
+.highlight .sc {
+  color: #d14; }
+
+.highlight .sd {
+  color: #d14; }
+
+.highlight .s2 {
+  color: #d14; }
+
+.highlight .se {
+  color: #d14; }
+
+.highlight .sh {
+  color: #d14; }
+
+.highlight .si {
+  color: #d14; }
+
+.highlight .sx {
+  color: #d14; }
+
+.highlight .sr {
+  color: #009926; }
+
+.highlight .s1 {
+  color: #d14; }
+
+.highlight .ss {
+  color: #990073; }
+
+.highlight .s {
+  color: #d14; }
+
+.highlight .na {
+  color: #008080; }
+
+.highlight .bp {
+  color: #999999; }
+
+.highlight .nb {
+  color: #0086B3; }
+
+.highlight .nc {
+  color: #445588;
+  font-weight: bold; }
+
+.highlight .no {
+  color: #008080; }
+
+.highlight .nd {
+  color: #3c5d5d;
+  font-weight: bold; }
+
+.highlight .ni {
+  color: #800080; }
+
+.highlight .ne {
+  color: #990000;
+  font-weight: bold; }
+
+.highlight .nf {
+  color: #990000;
+  font-weight: bold; }
+
+.highlight .nl {
+  color: #990000;
+  font-weight: bold; }
+
+.highlight .nn {
+  color: #555555; }
+
+.highlight .nt {
+  color: #000080; }
+
+.highlight .vc {
+  color: #008080; }
+
+.highlight .vg {
+  color: #008080; }
+
+.highlight .vi {
+  color: #008080; }
+
+.highlight .nv {
+  color: #008080; }
+
+.highlight .ow {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .o {
+  color: #000000;
+  font-weight: bold; }
+
+.highlight .w {
+  color: #bbbbbb; }
+
+.highlight {
+  background-color: #f8f8f8; }
+
+* {
+  box-sizing: border-box; }
+
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #606c71; }
+
+a {
+  color: #1e6bb8;
+  text-decoration: none; }
+  a:hover {
+    text-decoration: underline; }
+
+.btn {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.3rem;
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s; }
+  .btn:hover {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3); }
+  .btn + .btn {
+    margin-left: 1rem; }
+  @media screen and (min-width: 96em) {
+    .btn {
+      padding: 0.75rem 1rem; } }
+  @media screen and (min-width: 42em) and (max-width: 96em) {
+    .btn {
+      padding: 0.6rem 0.9rem;
+      font-size: 0.9rem; } }
+  @media screen and (max-width: 42em) {
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 0.9rem; }
+      .btn + .btn {
+        margin-top: 1rem;
+        margin-left: 0; } }
+
+.page-header {
+  color: #fff;
+  text-align: center;
+  background-color: #002c46;
+  background-image: linear-gradient(120deg, #2b8ca2, #002c46); }
+  @media screen and (min-width: 96em) {
+    .page-header {
+      padding: 5rem 6rem; } }
+  @media screen and (min-width: 42em) and (max-width: 96em) {
+    .page-header {
+      padding: 3rem 4rem; } }
+  @media screen and (max-width: 42em) {
+    .page-header {
+      padding: 2rem 1rem; } }
+
+.project-name {
+  margin-top: 0;
+  margin-bottom: 0.1rem; }
+  @media screen and (min-width: 96em) {
+    .project-name {
+      font-size: 3.25rem; } }
+  @media screen and (min-width: 42em) and (max-width: 96em) {
+    .project-name {
+      font-size: 2.25rem; } }
+  @media screen and (max-width: 42em) {
+    .project-name {
+      font-size: 1.75rem; } }
+
+.project-tagline {
+  margin-bottom: 2rem;
+  font-weight: normal;
+  opacity: 0.7; }
+  @media screen and (min-width: 96em) {
+    .project-tagline {
+      font-size: 1.25rem; } }
+  @media screen and (min-width: 42em) and (max-width: 96em) {
+    .project-tagline {
+      font-size: 1.15rem; } }
+  @media screen and (max-width: 42em) {
+    .project-tagline {
+      font-size: 1rem; } }
+
+.main-content {
+  word-wrap: break-word; }
+  .main-content :first-child {
+    margin-top: 0; }
+  @media screen and (min-width: 96em) {
+    .main-content {
+      max-width: 64rem;
+      padding: 2rem 6rem;
+      margin: 0 auto;
+      font-size: 1.1rem; } }
+  @media screen and (min-width: 42em) and (max-width: 96em) {
+    .main-content {
+      padding: 2rem 4rem;
+      font-size: 1.1rem; } }
+  @media screen and (max-width: 42em) {
+    .main-content {
+      padding: 2rem 1rem;
+      font-size: 1rem; } }
+  .main-content img {
+    max-width: 100%; }
+  .main-content h1,
+  .main-content h2,
+  .main-content h3,
+  .main-content h4,
+  .main-content h5,
+  .main-content h6 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: normal;
+    color: #159957; }
+  .main-content p {
+    margin-bottom: 1em; }
+  .main-content code {
+    padding: 2px 4px;
+    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 0.9rem;
+    color: #567482;
+    background-color: #f3f6fa;
+    border-radius: 0.3rem; }
+  .main-content pre {
+    padding: 0.8rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font: 1rem Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    color: #567482;
+    word-wrap: normal;
+    background-color: #f3f6fa;
+    border: solid 1px #dce6f0;
+    border-radius: 0.3rem; }
+    .main-content pre > code {
+      padding: 0;
+      margin: 0;
+      font-size: 0.9rem;
+      color: #567482;
+      word-break: normal;
+      white-space: pre;
+      background: transparent;
+      border: 0; }
+  .main-content .highlight {
+    margin-bottom: 1rem; }
+    .main-content .highlight pre {
+      margin-bottom: 0;
+      word-break: normal; }
+  .main-content .highlight pre,
+  .main-content pre {
+    padding: 0.8rem;
+    overflow: auto;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    border-radius: 0.3rem;
+    -webkit-overflow-scrolling: touch; }
+  .main-content pre code,
+  .main-content pre tt {
+    display: inline;
+    max-width: initial;
+    padding: 0;
+    margin: 0;
+    overflow: initial;
+    line-height: inherit;
+    word-wrap: normal;
+    background-color: transparent;
+    border: 0; }
+    .main-content pre code:before, .main-content pre code:after,
+    .main-content pre tt:before,
+    .main-content pre tt:after {
+      content: normal; }
+  .main-content ul,
+  .main-content ol {
+    margin-top: 0; }
+  .main-content blockquote {
+    padding: 0 1rem;
+    margin-left: 0;
+    color: #819198;
+    border-left: 0.3rem solid #dce6f0; }
+    .main-content blockquote > :first-child {
+      margin-top: 0; }
+    .main-content blockquote > :last-child {
+      margin-bottom: 0; }
+  .main-content table {
+    display: block;
+    width: 100%;
+    overflow: auto;
+    word-break: normal;
+    word-break: keep-all;
+    -webkit-overflow-scrolling: touch; }
+    .main-content table th {
+      font-weight: bold; }
+    .main-content table th,
+    .main-content table td {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e9ebec; }
+  .main-content dl {
+    padding: 0; }
+    .main-content dl dt {
+      padding: 0;
+      margin-top: 1rem;
+      font-size: 1rem;
+      font-weight: bold; }
+    .main-content dl dd {
+      padding: 0;
+      margin-bottom: 1rem; }
+  .main-content hr {
+    height: 2px;
+    padding: 0;
+    margin: 1rem 0;
+    background-color: #eff0f1;
+    border: 0; }
+
+.site-footer {
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: solid 1px #eff0f1; }
+  @media screen and (min-width: 96em) {
+    .site-footer {
+      font-size: 1rem; } }
+  @media screen and (min-width: 42em) and (max-width: 96em) {
+    .site-footer {
+      font-size: 1rem; } }
+  @media screen and (max-width: 42em) {
+    .site-footer {
+      font-size: 0.9rem; } }
+
+.site-footer-owner {
+  display: block;
+  font-weight: bold; }
+
+.site-footer-credits {
+  color: #819198; }
+
+.main-content {
+  /* Prevent overflow on mobile, see https://stackoverflow.com/questions/14270084/overflow-xhidden-doesnt-prevent-content-from-overflowing-in-mobile-browsers */
+  position: relative;
+  overflow-x: hidden; }
+
+@media screen and (min-width: 96em) {
+  .page-header {
+    padding: 3rem 4rem; } }
+
+h1.project-name {
+  font-family: 'Courier New', Courier, monospace; }
+
+#mainPlayer, #mainVisualizer {
+  display: block;
+  width: inherit;
+  margin: 0; }
+
+#mainVisualizer {
+  border-radius: 10px 10px 0 0;
+  border: 1px solid #e9e9e9;
+  border-bottom: none;
+  background: #fefefe; }
+  #mainVisualizer .piano-roll-visualizer {
+    width: inherit;
+    overflow: auto; }
+    #mainVisualizer .piano-roll-visualizer svg {
+      margin: 2px; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note {
+        opacity: calc(min(1, (var(--midi-velocity) + 30) / 128) * 0.75); }
+        #mainVisualizer .piano-roll-visualizer svg rect.note.active {
+          opacity: calc(min(1, (var(--midi-velocity) + 30) / 128) * 0.9);
+          stroke: black;
+          stroke-width: 0.75;
+          stroke-opacity: 0.75; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="0"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="1"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="2"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="3"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="4"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="5"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="6"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="7"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="8"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="9"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="10"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="11"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="12"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="13"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="14"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="15"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="16"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="17"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="18"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="19"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="20"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="21"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="22"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="23"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="24"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="25"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="26"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="27"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="28"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="29"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="30"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="31"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="32"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="33"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="34"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="35"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="36"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="37"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="38"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="39"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="40"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="41"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="42"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="43"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="44"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="45"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="46"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="47"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="48"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="49"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="50"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="51"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="52"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="53"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="54"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="55"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="56"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="57"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="58"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="59"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="60"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="61"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="62"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="63"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="64"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="65"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="66"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="67"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="68"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="69"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="70"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="71"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="72"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="73"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="74"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="75"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="76"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="77"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="78"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="79"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="80"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="81"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="82"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="83"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="84"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="85"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="86"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="87"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="88"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="89"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="90"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="91"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="92"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="93"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="94"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="95"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="96"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="97"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="98"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="99"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="100"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="101"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="102"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="103"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="104"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="105"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="106"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="107"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="108"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="109"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="110"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="111"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="112"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="113"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="114"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="115"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="116"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="117"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="118"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="119"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="120"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="121"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="122"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="123"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="124"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="125"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="126"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="127"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="128"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="129"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="130"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="131"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="132"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="133"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="134"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="135"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="136"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="137"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="138"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="139"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="140"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="141"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="142"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="143"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="144"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="145"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="146"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="147"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="148"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="149"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="150"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="151"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="152"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="153"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="154"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="155"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="156"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="157"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="158"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="159"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="160"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="161"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="162"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="163"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="164"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="165"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="166"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="167"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="168"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="169"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="170"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="171"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="172"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="173"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="174"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="175"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="176"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="177"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="178"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="179"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="180"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="181"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="182"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="183"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="184"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="185"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="186"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="187"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="188"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="189"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="190"] {
+        fill: #00b680; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="191"] {
+        fill: #de0015; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="192"] {
+        fill: #4f00cf; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="193"] {
+        fill: #d39e00; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="194"] {
+        fill: #f3006f; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="195"] {
+        fill: #00879c; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="196"] {
+        fill: #de6500; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="197"] {
+        fill: #009c24; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="198"] {
+        fill: #0062cc; }
+      #mainVisualizer .piano-roll-visualizer svg rect.note[data-instrument="199"] {
+        fill: #00b680; }
+
+#mainPlayer::part(control-panel) {
+  border-radius: 0 0 10px 10px;
+  border: 1px solid #e9e9e9;
+  border-top: none;
+  background: linear-gradient(#fefefe, #e9e9e9); }
+
+</style>
+    
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>html-midi-player | Play and display MIDI files online</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="html-midi-player" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A web component for MIDI playback and visualization in the browser. It allows playing MIDI files online." />
+<meta property="og:description" content="A web component for MIDI playback and visualization in the browser. It allows playing MIDI files online." />
+<meta property="twitter:description" content="A web component for MIDI playback and visualization in the browser. It allows playing MIDI files online." />
+<meta property="og:site_name" content="html-midi-player" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="html-midi-player" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","description":"A web component for MIDI playback and visualization in the browser. It allows playing MIDI files online.","headline":"html-midi-player","name":"html-midi-player","url":"/html-midi-player/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/html-midi-player/assets/css/style.css?v='">
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js"></script>
+    <script type="text/javascript" src="/html-midi-player/assets/js/index.js"></script>
+  </head>
+  <body>
+    <header class="page-header" role="banner">
+      <h1 class="project-name">html-midi-player</h1>
+      <h2 class="project-tagline">Play and display MIDI files on the web</h2>
+      
+        <a href="https://github.com/cifkao/html-midi-player" class="btn">View on GitHub</a>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <div>
+<midi-visualizer type="piano-roll" id="mainVisualizer" src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"></midi-visualizer>
+<midi-player src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid" sound-font="" visualizer="#mainVisualizer" id="mainPlayer">
+</midi-player>
+</div>
+
+<p>
+<label for="midiFile">Load MIDI file:</label>
+<input type="file" id="midiFile" name="midiFile" accept="audio/midi, audio/x-midi" />
+</p>
+
+<div style="margin-top: 5ex;">
+  <h2 id="getting-started">Getting started</h2>
+
+  <ol>
+    <li>
+      <p>Add the necessary scripts to your page:</p>
+
+      <div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div>      </div>
+    </li>
+    <li>
+      <p>Add a player and (optionally) a visualizer:</p>
+
+      <div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;midi-player</span>
+  <span class="na">src=</span><span class="s">"https://magenta.github.io/magenta-js/music/demos/melody.mid"</span>
+  <span class="na">sound-font</span> <span class="na">visualizer=</span><span class="s">"#myVisualizer"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/midi-player&gt;</span>
+<span class="nt">&lt;midi-visualizer</span> <span class="na">type=</span><span class="s">"piano-roll"</span> <span class="na">id=</span><span class="s">"myVisualizer"</span><span class="nt">&gt;&lt;/midi-visualizer&gt;</span>
+</code></pre></div>      </div>
+    </li>
+  </ol>
+
+  <p>That’s it!</p>
+
+  <p><code class="language-plaintext highlighter-rouge">html-midi-player</code> is available for free under the BSD-2-Clause license.
+If you use <code class="language-plaintext highlighter-rouge">html-midi-player</code> on your website, please consider linking back to <a href="https://github.com/cifkao/html-midi-player/">the repository</a>.</p>
+
+  <p>For more information, see the <a href="https://github.com/cifkao/html-midi-player#readme">readme</a>.</p>
+
+  <h2 id="simple-demo">Simple demo</h2>
+
+  <p class="codepen" data-height="300" data-default-tab="html,result" data-slug-hash="WNwpLzL" data-user="cifkao" style="height: 300px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;">
+  <span>See the Pen <a href="https://codepen.io/cifkao/pen/WNwpLzL">
+  HTML MIDI Player Basic Example</a> by Ondřej Cífka (<a href="https://codepen.io/cifkao">@cifkao</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+
+  <h2 id="advanced-demo">Advanced demo</h2>
+
+  <p class="codepen" data-height="300" data-default-tab="html,result" data-slug-hash="GRZxqZN" data-user="cifkao" style="height: 300px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;">
+  <span>See the Pen <a href="https://codepen.io/cifkao/pen/GRZxqZN">
+  HTML MIDI Player Advanced Examples</a> by Ondřej Cífka (<a href="https://codepen.io/cifkao">@cifkao</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+</div>
+
+<script async="" src="https://cpwebassets.codepen.io/assets/embed/ei.js"></script>
+
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/cifkao/html-midi-player">html-midi-player</a> is maintained by <a href="https://github.com/cifkao">Ondřej Cífka</a>.</span>
+        
+        <span>The source code of this page is available <a href="https://github.com/cifkao/html-midi-player/tree/www">here</a>.</span>
+      </footer>
+    </main>
+<script>
+(()=>{function t(t){var e=!0,i=!1,s=null,n={text:!0,search:!0,url:!0,tel:!0,email:!0,password:!0,number:!0,date:!0,month:!0,week:!0,time:!0,datetime:!0,"datetime-local":!0};function o(t){return!!t&&t!==document&&"HTML"!==t.nodeName&&"BODY"!==t.nodeName&&"classList"in t&&"contains"in t.classList}function r(t){t.classList.contains("focus-visible")||(t.classList.add("focus-visible"),t.setAttribute("data-focus-visible-added",""))}function a(t){e=!1}function l(){document.addEventListener("mousemove",d),document.addEventListener("mousedown",d),document.addEventListener("mouseup",d),document.addEventListener("pointermove",d),document.addEventListener("pointerdown",d),document.addEventListener("pointerup",d),document.addEventListener("touchmove",d),document.addEventListener("touchstart",d),document.addEventListener("touchend",d)}function d(t){t.target.nodeName&&"html"===t.target.nodeName.toLowerCase()||(e=!1,document.removeEventListener("mousemove",d),document.removeEventListener("mousedown",d),document.removeEventListener("mouseup",d),document.removeEventListener("pointermove",d),document.removeEventListener("pointerdown",d),document.removeEventListener("pointerup",d),document.removeEventListener("touchmove",d),document.removeEventListener("touchstart",d),document.removeEventListener("touchend",d))}document.addEventListener("keydown",function(i){i.metaKey||i.altKey||i.ctrlKey||(o(t.activeElement)&&r(t.activeElement),e=!0)},!0),document.addEventListener("mousedown",a,!0),document.addEventListener("pointerdown",a,!0),document.addEventListener("touchstart",a,!0),document.addEventListener("visibilitychange",function(t){"hidden"===document.visibilityState&&(i&&(e=!0),l())},!0),l(),t.addEventListener("focus",function(t){if(o(t.target)){var i,s,a;(e||(s=(i=t.target).type,"INPUT"===(a=i.tagName)&&n[s]&&!i.readOnly||"TEXTAREA"===a&&!i.readOnly||i.isContentEditable||0))&&r(t.target)}},!0),t.addEventListener("blur",function(t){if(o(t.target)&&(t.target.classList.contains("focus-visible")||t.target.hasAttribute("data-focus-visible-added"))){var e;i=!0,window.clearTimeout(s),s=window.setTimeout(function(){i=!1},100),(e=t.target).hasAttribute("data-focus-visible-added")&&(e.classList.remove("focus-visible"),e.removeAttribute("data-focus-visible-added"))}},!0),t.nodeType===Node.DOCUMENT_FRAGMENT_NODE&&t.host?t.host.setAttribute("data-js-focus-visible",""):t.nodeType===Node.DOCUMENT_NODE&&(document.documentElement.classList.add("js-focus-visible"),document.documentElement.setAttribute("data-js-focus-visible",""))}if("undefined"!=typeof window&&"undefined"!=typeof document){var e;window.applyFocusVisiblePolyfill=t;try{e=new CustomEvent("focus-visible-polyfill-ready")}catch(t){(e=document.createEvent("CustomEvent")).initCustomEvent("focus-visible-polyfill-ready",!1,!1,{})}window.dispatchEvent(e)}"undefined"!=typeof document&&t(document);var i={};i=core;let s=document.createElement("template");s.innerHTML=`
+<style>
+:host {
+  display: inline-block;
+  width: 300px;
+  margin: 3px;
+  vertical-align: bottom;
+  font-family: sans-serif;
+  font-size: 14px;
+}
+
+.controls {
+  width: inherit;
+  height: inherit;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  border-radius: 100px;
+  background: #f2f5f6;
+  padding: 0 0.25em;
+  user-select: none;
+}
+.controls > * {
+  margin: 0.8em 0.45em;
+}
+.controls input, .controls button {
+  cursor: pointer;
+}
+.controls input:disabled, .controls button:disabled {
+  cursor: inherit;
+}
+.controls button {
+  text-align: center;
+  background: rgba(204, 204, 204, 0);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 100%;
+  transition: background-color 0.25s ease 0s;
+  padding: 0;
+}
+.controls button:not(:disabled):hover {
+  background: rgba(204, 204, 204, 0.3);
+}
+.controls button:not(:disabled):active {
+  background: rgba(204, 204, 204, 0.6);
+}
+.controls button .icon {
+  display: none;
+}
+.controls button .icon, .controls button .icon svg {
+  vertical-align: middle;
+}
+.controls button .icon svg {
+  fill: currentColor;
+}
+.controls .seek-bar {
+  flex: 1;
+  min-width: 0;
+  margin-right: 1.1em;
+  background: transparent;
+}
+.controls .seek-bar::-moz-range-track {
+  background-color: #555;
+}
+.controls.stopped .play-icon, .controls.playing .stop-icon, .controls.error .error-icon {
+  display: inherit;
+}
+.controls.frozen > div, .controls > button:disabled .icon {
+  opacity: 0.5;
+}
+.controls .overlay {
+  z-index: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  box-sizing: border-box;
+  display: none;
+  opacity: 1;
+}
+.controls.loading .loading-overlay {
+  display: block;
+  background: linear-gradient(110deg, rgba(146, 146, 146, 0) 5%, rgba(146, 146, 146, 0.5333333333) 25%, rgba(146, 146, 146, 0) 45%);
+  background-size: 250% 100%;
+  background-repeat: repeat-y;
+  animation: shimmer 1.5s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 125% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+</style>
+<div class="controls stopped frozen" part="control-panel" role="region" aria-label="Player controls">
+  <button class="play" part="play-button" aria-label="Play" disabled>
+    <span class="icon play-icon" aria-hidden="true"><svg width="24" height="24" version="1.1" viewBox="0 0 6.35 6.35" xmlns="http://www.w3.org/2000/svg">
+ <path d="m4.4979 3.175-2.1167 1.5875v-3.175z" stroke-width=".70201"/>
+</svg>
+</span>
+    <span class="icon stop-icon" aria-hidden="true"><svg width="24" height="24" version="1.1" viewBox="0 0 6.35 6.35" xmlns="http://www.w3.org/2000/svg">
+ <path d="m1.8521 1.5875v3.175h0.92604v-3.175zm1.7198 0v3.175h0.92604v-3.175z" stroke-width=".24153"/>
+</svg>
+</span>
+    <span class="icon error-icon" aria-hidden="true"><svg width="24" height="24" version="1.1" viewBox="0 0 6.35 6.35" xmlns="http://www.w3.org/2000/svg">
+ <path transform="scale(.26458)" d="m12 3.5a8.4993 8.4993 0 0 0-8.5 8.5 8.4993 8.4993 0 0 0 8.5 8.5 8.4993 8.4993 0 0 0 8.5-8.5 8.4993 8.4993 0 0 0-8.5-8.5zm-1.4062 3.5h3v6h-3v-6zm0 8h3v2h-3v-2z"/>
+</svg>
+</span>
+  </button>
+  <div part="time">
+    <span class="current-time" part="current-time" aria-label="Elapsed time">0:00</span> / <span class="total-time" part="total-time" aria-label="Total time">0:00</span>
+  </div>
+  <input type="range" min="0" max="0" value="0" step="any" class="seek-bar" part="seek-bar" aria-label="Playback position" disabled>
+  <div class="overlay loading-overlay" part="loading-overlay"></div>
+</div>
+`;let n=document.createElement("template");function o(t){let e=t<0,i=(t=Math.floor(Math.abs(t||0)))%60,s=(t-i)/60,n=(t-i-60*s)/3600,o=s>9||!n?`${s}:`:`0${s}:`;return(e?"-":"")+(n?`${n}:`:"")+o+(i>9?`${i}`:`0${i}`)}n.innerHTML=`
+<style>
+:host {
+  display: block;
+}
+
+::slotted(.piano-roll-visualizer) {
+  overflow-x: auto;
+}
+</style>
+<slot>
+</slot>
+`;let r=["piano-roll","waterfall","staff"];class a extends HTMLElement{constructor(){super(...arguments),this.domInitialized=!1,this.ns=null,this._config={}}static get observedAttributes(){return["src","type"]}connectedCallback(){this.attachShadow({mode:"open"}),this.shadowRoot.appendChild(n.content.cloneNode(!0)),this.domInitialized||(this.domInitialized=!0,this.wrapper=document.createElement("div"),this.appendChild(this.wrapper),this.initVisualizerNow())}attributeChangedCallback(t,e,i){("src"===t||"type"===t)&&this.initVisualizer()}initVisualizer(){null==this.initTimeout&&(this.initTimeout=window.setTimeout(()=>this.initVisualizerNow()))}async initVisualizerNow(){if((this.initTimeout=null,this.domInitialized)&&(this.src&&(this.ns=null,this.ns=await i.urlToNoteSequence(this.src)),this.wrapper.innerHTML="",this.ns)){if("piano-roll"===this.type){this.wrapper.classList.add("piano-roll-visualizer");let t=document.createElementNS("http://www.w3.org/2000/svg","svg");this.wrapper.appendChild(t),this.visualizer=new i.PianoRollSVGVisualizer(this.ns,t,this._config)}else if("waterfall"===this.type)this.wrapper.classList.add("waterfall-visualizer"),this.visualizer=new i.WaterfallSVGVisualizer(this.ns,this.wrapper,this._config);else if("staff"===this.type){this.wrapper.classList.add("staff-visualizer");let t=document.createElement("div");this.wrapper.appendChild(t),this.visualizer=new i.StaffSVGVisualizer(this.ns,t,this._config)}}}reload(){this.initVisualizerNow()}redraw(t){this.visualizer&&this.visualizer.redraw(t,null!=t)}clearActiveNotes(){this.visualizer&&this.visualizer.clearActiveNotes()}get noteSequence(){return this.ns}set noteSequence(t){this.ns!=t&&(this.ns=t,this.removeAttribute("src"),this.initVisualizer())}get src(){return this.getAttribute("src")}set src(t){this.ns=null,this.setOrRemoveAttribute("src",t),this.initVisualizer()}get type(){let t=this.getAttribute("type");return 0>r.indexOf(t)&&(t="piano-roll"),t}set type(t){if(null!=t&&0>r.indexOf(t))throw Error(`Unknown visualizer type ${t}. Allowed values: ${r.join(", ")}`);this.setOrRemoveAttribute("type",t)}get config(){return this._config}set config(t){this._config=t,this.initVisualizer()}setOrRemoveAttribute(t,e){null==e?this.removeAttribute(t):this.setAttribute(t,e)}}let l=["start","stop","note"],d=null;class u extends HTMLElement{constructor(){super(),this.domInitialized=!1,this.needInitNs=!1,this.visualizerListeners=new Map,this.ns=null,this._playing=!1,this.seeking=!1,this.attachShadow({mode:"open"}),this.shadowRoot.appendChild(s.content.cloneNode(!0)),this.controlPanel=this.shadowRoot.querySelector(".controls"),this.playButton=this.controlPanel.querySelector(".play"),this.currentTimeLabel=this.controlPanel.querySelector(".current-time"),this.totalTimeLabel=this.controlPanel.querySelector(".total-time"),this.seekBar=this.controlPanel.querySelector(".seek-bar")}static get observedAttributes(){return["sound-font","src","visualizer"]}connectedCallback(){this.domInitialized||(this.domInitialized=!0,this.playButton.addEventListener("click",()=>{this.player.isPlaying()?this.stop():this.start()}),this.seekBar.addEventListener("input",()=>{this.seeking=!0,this.player&&"started"===this.player.getPlayState()&&this.player.pause()}),this.seekBar.addEventListener("change",()=>{let t=this.currentTime;this.displayCurrentTime(t),this.player&&this.player.isPlaying()&&(this.player.seekTo(t),"paused"===this.player.getPlayState()&&this.player.resume()),this.seeking=!1}),this.initPlayerNow())}attributeChangedCallback(t,e,i){if(this.hasAttribute(t)||(i=null),"sound-font"===t||"src"===t)this.initPlayer();else if("visualizer"===t){let t=()=>{this.setVisualizerSelector(i)};"loading"===document.readyState?window.addEventListener("DOMContentLoaded",t):t()}}initPlayer(t=!0){this.needInitNs=this.needInitNs||t,null==this.initTimeout&&(this.stop(),this.setLoading(),this.initTimeout=window.setTimeout(()=>this.initPlayerNow(this.needInitNs)))}async initPlayerNow(t=!0){if(this.initTimeout=null,this.needInitNs=!1,this.domInitialized)try{let e=null;if(t&&(this.src&&(this.ns=null,this.ns=await i.urlToNoteSequence(this.src)),this.currentTime=0,this.ns||this.setError("No content loaded")),e=this.ns)this.seekBar.max=String(e.totalTime),this.totalTimeLabel.textContent=o(e.totalTime);else{this.seekBar.max="0",this.totalTimeLabel.textContent=o(0);return}let s=this.soundFont,n={run:t=>this.ns===e&&this.noteCallback(t),stop:()=>{}};if(null===s?this.player=new i.Player(!1,n):(""===s&&(s="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"),this.player=new i.SoundFontPlayer(s,void 0,void 0,void 0,n),await this.player.loadSamples(e)),this.ns!==e)return;this.setLoaded(),this.dispatchEvent(new CustomEvent("load"))}catch(t){throw this.setError(String(t)),t}}reload(){this.initPlayerNow()}start(){this._start()}_start(t=!1){(async()=>{if(this.player)if("stopped"==this.player.getPlayState()){d&&d.playing&&!(d==this&&t)&&d.stop(),d=this,this._playing=!0;let e=this.currentTime;0==this.ns.notes.filter(t=>t.startTime>e).length&&(e=0),this.currentTime=e,this.controlPanel.classList.remove("stopped"),this.controlPanel.classList.add("playing"),this.playButton.setAttribute("aria-label","Stop");try{for(let t of this.visualizerListeners.keys())t.noteSequence!=this.ns&&(t.noteSequence=this.ns,t.reload());let i=this.player.start(this.ns,void 0,e);t?this.dispatchEvent(new CustomEvent("loop")):this.dispatchEvent(new CustomEvent("start")),await i,this.handleStop(!0)}catch(t){throw this.handleStop(),t}}else"paused"==this.player.getPlayState()&&this.player.resume()})()}stop(){this.player&&this.player.isPlaying()&&this.player.stop(),this.handleStop(!1)}addVisualizer(t){let e={start:()=>{t.noteSequence=this.noteSequence},stop:()=>{t.clearActiveNotes()},note:e=>{t.redraw(e.detail.note)}};for(let t of l)this.addEventListener(t,e[t]);this.visualizerListeners.set(t,e)}removeVisualizer(t){let e=this.visualizerListeners.get(t);for(let t of l)this.removeEventListener(t,e[t]);this.visualizerListeners.delete(t)}noteCallback(t){this.playing&&(this.dispatchEvent(new CustomEvent("note",{detail:{note:t}})),this.seeking||(this.seekBar.value=String(t.startTime),this.displayCurrentTime(t.startTime)))}handleStop(t=!1){if(t){if(this.loop){this.currentTime=0,this._start(!0);return}this.currentTime=this.duration}this.controlPanel.classList.remove("playing"),this.controlPanel.classList.add("stopped"),this.playButton.setAttribute("aria-label","Play"),this._playing&&(this._playing=!1,this.dispatchEvent(new CustomEvent("stop",{detail:{finished:t}})))}setVisualizerSelector(t){for(let t of this.visualizerListeners.values())for(let e of l)this.removeEventListener(e,t[e]);if(this.visualizerListeners.clear(),null!=t)for(let e of document.querySelectorAll(t)){if(!(e instanceof a)){console.warn(`Selector ${t} matched non-visualizer element`,e);continue}this.addVisualizer(e)}}setLoading(){this.playButton.disabled=!0,this.seekBar.disabled=!0,this.controlPanel.classList.remove("error"),this.controlPanel.classList.add("loading","frozen"),this.controlPanel.removeAttribute("title")}setLoaded(){this.controlPanel.classList.remove("loading","frozen"),this.playButton.disabled=!1,this.seekBar.disabled=!1}setError(t){this.playButton.disabled=!0,this.seekBar.disabled=!0,this.controlPanel.classList.remove("loading","stopped","playing"),this.controlPanel.classList.add("error","frozen"),this.controlPanel.title=t}get noteSequence(){return this.ns}set noteSequence(t){this.ns!=t&&(this.ns=t,this.removeAttribute("src"),this.initPlayer())}get src(){return this.getAttribute("src")}set src(t){this.ns=null,this.setOrRemoveAttribute("src",t),this.initPlayer()}get soundFont(){return this.getAttribute("sound-font")}set soundFont(t){this.setOrRemoveAttribute("sound-font",t)}get loop(){return null!=this.getAttribute("loop")}set loop(t){this.setOrRemoveAttribute("loop",t?"":null)}get currentTime(){return parseFloat(this.seekBar.value)}set currentTime(t){this.seekBar.value=String(t),this.displayCurrentTime(t),this.player&&this.player.isPlaying()&&this.player.seekTo(t)}displayCurrentTime(t){this.currentTimeLabel.textContent=o(t),this.seekBar.setAttribute("aria-valuetext",`Elapsed time: ${o(t)}`)}get duration(){return parseFloat(this.seekBar.max)}get playing(){return this._playing}setOrRemoveAttribute(t,e){null==e?this.removeAttribute(t):this.setAttribute(t,e)}}window.customElements.define("midi-player",u),window.customElements.define("midi-visualizer",a),window.addEventListener("DOMContentLoaded",()=>{let t=document.getElementById("midiFile");t&&t.addEventListener("change",t=>{(0,i.blobToNoteSequence)(t.target.files[0]).then(t=>{document.getElementById("mainPlayer").noteSequence=t,document.getElementById("mainVisualizer").noteSequence=t}).catch(t=>{alert("Failed to load MIDI file."),console.error(t)})})})})();
+//# sourceMappingURL=index.js.map
+
+</script>
+  </body>
+</html>
