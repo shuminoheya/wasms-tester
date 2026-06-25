@@ -121,7 +121,6 @@ async function loadArchive(file){
   sz.FS.writeFile(file.name, buf);
   sz.callMain(["x", file.name, "-y"]);
 
-  // 元アーカイブは FS から削除
   try { sz.FS.unlink("/" + file.name); } catch {}
 
   const paths = listAllFiles("/");
@@ -149,7 +148,6 @@ function normalizePath(p){
   return ("/" + p).replace(/\/+/g, "/");
 }
 
-// 仮想 FS の dev/home/proc/tmp は残しつつ、それ以外を走査
 function listAllFiles(dir){
   let result = [];
   let entriesFS;
@@ -174,10 +172,7 @@ function listAllFiles(dir){
     }
 
     if (sz.FS.isDir(stat.mode)){
-      // 仮想ディレクトリはスキップ
-      if (full === "/dev" || full === "/proc" || full === "/home" || full === "/tmp") {
-        continue;
-      }
+      if (["/dev","/proc","/home","/tmp"].includes(full)) continue;
       result = result.concat(listAllFiles(full));
     } else {
       result.push(full);
@@ -186,7 +181,6 @@ function listAllFiles(dir){
   return result;
 }
 
-// 仮想 FS から展開物だけ削除（dev/home/proc/tmp は残す）
 function cleanFSAll(){
   try {
     const all = listAllFiles("/");
@@ -198,16 +192,20 @@ function cleanFSAll(){
 
 function buildTree(){
   folderTree = {};
+
   for(const entry of entries){
     const parts = entry.path.split("/");
     let node = folderTree;
-    for(let i=0;i<parts.length;i++){
+
+    for(let i = 0; i < parts.length; i++){
       const p = parts[i];
-      if(!node[p]) node[p] = { __files: [], __folders: {} };
+
       if(i === parts.length - 1){
-        node[p].__files.push(entry);
+        if(!node.__files) node.__files = [];
+        node.__files.push(entry);
       } else {
-        node = node[p].__folders;
+        if(!node[p]) node[p] = {};
+        node = node[p];
       }
     }
   }
@@ -217,6 +215,7 @@ function renderTree(){
   const tree = document.getElementById("tree");
   tree.innerHTML = "";
   const ul = document.createElement("ul");
+
   for(const name in folderTree){
     ul.appendChild(createFolderNode(name, folderTree[name]));
   }
@@ -226,18 +225,19 @@ function renderTree(){
 function createFolderNode(name, node){
   const li = document.createElement("li");
   li.textContent = "📁 " + name;
+
   li.onclick = e => {
     e.stopPropagation();
     showFolder(node);
   };
-  const sub = node.__folders;
-  if(Object.keys(sub).length){
+
+  for(const key in node){
+    if(key === "__files") continue;
     const ul = document.createElement("ul");
-    for(const s in sub){
-      ul.appendChild(createFolderNode(s, sub[s]));
-    }
+    ul.appendChild(createFolderNode(key, node[key]));
     li.appendChild(ul);
   }
+
   return li;
 }
 
@@ -246,38 +246,40 @@ function showFolder(folder){
   list.innerHTML = "";
   document.getElementById("preview").innerHTML = "";
 
-  folder.__files.forEach(entry => {
-    const div = document.createElement("div");
-    div.className = "file-item";
+  if(folder.__files){
+    folder.__files.forEach(entry => {
+      const div = document.createElement("div");
+      div.className = "file-item";
 
-    const icon = document.createElement("span");
-    icon.className = "icon";
-    icon.textContent = getIcon(entry);
+      const icon = document.createElement("span");
+      icon.className = "icon";
+      icon.textContent = getIcon(entry);
 
-    const nameSpan = document.createElement("span");
-    nameSpan.className = "name";
-    nameSpan.textContent = entry.path.split("/").pop();
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.textContent = entry.path.split("/").pop();
 
-    const dl = document.createElement("a");
-    dl.className = "download-link";
-    dl.textContent = "⬇";
-    dl.href = URL.createObjectURL(entry.file);
-    dl.download = entry.path.split("/").pop();
+      const dl = document.createElement("a");
+      dl.className = "download-link";
+      dl.textContent = "⬇";
+      dl.href = URL.createObjectURL(entry.file);
+      dl.download = entry.path.split("/").pop();
 
-    div.appendChild(icon);
-    div.appendChild(nameSpan);
-    div.appendChild(dl);
+      div.appendChild(icon);
+      div.appendChild(nameSpan);
+      div.appendChild(dl);
 
-    div.onclick = () => previewFile(entry);
+      div.onclick = () => previewFile(entry);
 
-    div.oncontextmenu = e => {
-      e.preventDefault();
-      currentContextEntry = entry;
-      showContextMenu(e.clientX, e.clientY);
-    };
+      div.oncontextmenu = e => {
+        e.preventDefault();
+        currentContextEntry = entry;
+        showContextMenu(e.clientX, e.clientY);
+      };
 
-    list.appendChild(div);
-  });
+      list.appendChild(div);
+    });
+  }
 }
 
 function getIcon(entry){
@@ -361,15 +363,13 @@ document.getElementById("btnCompress").onclick = async () => {
 
   cleanFSAll();
 
-  // 展開した内容だけを書き戻す
   for(const entry of entries){
     const buf = new Uint8Array(await entry.file.arrayBuffer());
     ensureDir(entry.path);
     sz.FS.writeFile(normalizePath(entry.path), buf);
   }
 
-  // entries だけを圧縮対象にする
-  const targets = entries.map(e => normalizePath(e.path));
+  const targets = entries.map(e => e.path);
   sz.callMain(["a", outName, ...targets]);
 
   const out = sz.FS.readFile(outName);
@@ -385,7 +385,8 @@ document.getElementById("btnCompress").onclick = async () => {
 function ensureDir(path){
   const parts = path.split("/");
   let current = "";
-  for(let i=0;i<parts.length - 1;i++){
+
+  for(let i = 0; i < parts.length - 1; i++){
     current += "/" + parts[i];
     const norm = normalizePath(current);
     try { sz.FS.mkdir(norm); } catch {}
