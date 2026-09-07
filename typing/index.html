@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ローマ字タイピング</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; line-height: 1.8; }
+    #stats { font-size: 1.2em; margin-bottom: 20px; }
+    #japanese, #romaji {
+      font-size: 1.1em;
+      white-space: pre-wrap;
+      margin-bottom: 10px;
+    }
+    #romaji {
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: #f9f9f9;
+      min-height: 1.8em;
+    }
+    .typed { color: gray; }
+    .current { background: yellow; }
+  </style>
+</head>
+
+<body>
+
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/NfjTGFMMKL0"
+    title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+
+  <div id="stats">
+    打鍵数: <span id="keystrokes">0</span>｜
+    ミス: <span id="miss">0</span>｜
+    スピード: <span id="speed">0.00</span> 打/秒
+  </div>
+
+  <div id="japanese"></div>
+  <div id="romaji"></div>
+
+<script>
+/* ============================================================
+   WASM ローマ字入力エンジン
+   JS は UI / キーボード / WASM の橋渡しだけを担当。
+   ローマ字候補生成・かな分割・入力状態・正誤判定は WASM 側。
+   ============================================================ */
+
+const sentences = [
+  { jp: "泡沫、そのまほろば", hira: "うたかた そのまほろば" },
+  { jp: "触れたくて", hira: "ふれたくて" },
+  { jp: "そっと指で撫でたくても", hira: "そっとゆびでなでたくても" },
+  { jp: "残る灯火が僕を邪魔する", hira: "のこるともしびがぼくをじゃまする" },
+  { jp: "君の静寂恋せども", hira: "きみのしじまこいせども" },
+  { jp: "焔は消えない", hira: "ほむらはきえない" },
+  { jp: "ああそれなら君の傍らで", hira: "ああ それなら" },
+  { jp: "君の傍らで", hira: "きみのかたわらで" },
+  { jp: "この身沈めよう", hira: "このみしずめよう" },
+  { jp: "心だけを殺して", hira: "こころだけをころして" },
+  { jp: "泡沫、君のようだ", hira: "うたかた きみのようだ" },
+  { jp: "触れて壊さぬように", hira: "ふれてこわさぬように" },
+  { jp: "刹那 哀のまほろば", hira: "せつなあいのまほろば" },
+  { jp: "見守るよ", hira: "みまもるよ" },
+  { jp: "行き場のない「優しさ」だけ", hira: "いきばのないやさしさだけ" },
+  { jp: "僕の心を漂うばかり", hira: "ぼくのこころをただようばかり" },
+  { jp: "それが無駄だとしても", hira: "それがむだだとしても" },
+  { jp: "これしかできない", hira: "これしかできない" },
+  { jp: "失って気づいてしまうと", hira: "うしなってきづいてしまうと" },
+  { jp: "僕は分かってた", hira: "ぼくはわかってた" },
+  { jp: "臆病なだけだった", hira: "おくびょうなだけだった" },
+  { jp: "泡沫、君のようだ", hira: "うたかた きみのようだ" },
+  { jp: "遅すぎたエゴイズム", hira: "おそすぎたえごいずむ" },
+  { jp: "伝えることもできず", hira: "つたえることもできず" },
+  { jp: "消えてった", hira: "きえてった" },
+  { jp: "君を困らせたいほど", hira: "きみをこまらせたいほど" },
+  { jp: "真実の愛なのに", hira: "しんじつのあいなのに" },
+  { jp: "終焉のさだめから", hira: "しゅうえんのさだめから" },
+  { jp: "逃げていた", hira: "にげていた" },
+  { jp: "泡沫、夢のような", hira: "うたかた ゆめのような" },
+  { jp: "仮初の恋でした", hira: "かりそめのこいでした" },
+  { jp: "決して思い出になど", hira: "けっしておもいでになど" },
+  { jp: "させはしない", hira: "させはしない" },
+  { jp: "いつまでも", hira: "いつまでも" }
+];
+
+let currentSentence = 0;
+let keystrokes = 0;
+let miss = 0;
+let startTime = null;
+let wasm = null;
+let memory = null;
+let pendingSentenceTimer = null;
+
+const jpDiv = document.getElementById("japanese");
+const romaDiv = document.getElementById("romaji");
+const ksDisp = document.getElementById("keystrokes");
+const missDisp = document.getElementById("miss");
+const speedDisp = document.getElementById("speed");
+
+function memString(ptr, len) {
+  return new TextDecoder().decode(new Uint8Array(memory.buffer, ptr, len));
+}
+
+function copyToWasm(text) {
+  const bytes = new TextEncoder().encode(text);
+  const ptr = wasm.instance.exports.engine_text_ptr();
+  new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
+  return bytes.length;
+}
+
+function candidateAt(index) {
+  const ptr = wasm.instance.exports.engine_candidate_ptr_at(index);
+  const len = wasm.instance.exports.engine_candidate_len_at(index);
+  const bytes = new Uint8Array(memory.buffer, ptr, len);
+  const out = [];
+  let start = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] === 0) {
+      out.push(new TextDecoder().decode(bytes.slice(start, i)));
+      start = i + 1;
+    }
+  }
+  return out;
+}
+
+function fixedAt(index) {
+  const ptr = wasm.instance.exports.engine_fixed_ptr(index);
+  const len = wasm.instance.exports.engine_fixed_len(index);
+  return memString(ptr, len);
+}
+
+function currentBuffer() {
+  const ptr = wasm.instance.exports.engine_buffer_ptr();
+  const len = wasm.instance.exports.engine_buffer_len();
+  return memString(ptr, len);
+}
+
+function buildRomaji() {
+  const count = wasm.instance.exports.engine_count();
+  const idx = wasm.instance.exports.engine_idx();
+  const buffer = currentBuffer();
+  let out = "";
+
+  for (let i = 0; i < count; i++) {
+    if (i < idx) {
+      out += fixedAt(i);
+      continue;
+    }
+
+    const list = candidateAt(i);
+    if (i === idx && buffer) {
+      const match = list.find(x => x.startsWith(buffer));
+      out += match ? buffer + match.slice(buffer.length) : buffer;
+    } else {
+      out += list[0] || "";
+    }
+  }
+
+  return out;
+}
+
+function typedLen() {
+  const idx = wasm.instance.exports.engine_idx();
+  let len = 0;
+  for (let i = 0; i < idx; i++) len += fixedAt(i).length;
+  return len + currentBuffer().length;
+}
+
+function escapeHtml(str) {
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function updateDisplay() {
+  const r = buildRomaji();
+  const t = typedLen();
+  romaDiv.innerHTML =
+    `<span class="typed">${escapeHtml(r.slice(0, t))}</span>` +
+    `<span class="current">${escapeHtml(r[t] || "")}</span>` +
+    escapeHtml(r.slice(t + 1));
+}
+
+function loadSentence(n) {
+  const s = sentences[n];
+  jpDiv.textContent = s.jp;
+
+  const bytes = new TextEncoder().encode(s.hira);
+  const ptr = wasm.instance.exports.engine_text_ptr();
+  new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
+  wasm.instance.exports.engine_set_text(ptr, bytes.length);
+
+  keystrokes = 0;
+  miss = 0;
+  startTime = performance.now();
+
+  ksDisp.textContent = "0";
+  missDisp.textContent = "0";
+  speedDisp.textContent = "0.00";
+
+  updateDisplay();
+}
+
+async function init() {
+  const result = await WebAssembly.instantiateStreaming(fetch("./romaji_engine_full.wasm"), {});
+  wasm = result;
+  memory = wasm.instance.exports.memory;
+  loadSentence(currentSentence);
+}
+
+document.addEventListener("keydown", e => {
+  if (!wasm) return;
+
+  if (pendingSentenceTimer !== null) {
+    clearTimeout(pendingSentenceTimer);
+    pendingSentenceTimer = null;
+  }
+
+  if (e.key === "Backspace") {
+    e.preventDefault();
+    wasm.instance.exports.engine_backspace();
+    updateDisplay();
+    return;
+  }
+
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+  const key = e.key.toLowerCase();
+  if (!/^[a-z]$/.test(key) && key !== "-" && key !== " ") return;
+
+  keystrokes++;
+  ksDisp.textContent = keystrokes;
+
+  const result = wasm.instance.exports.engine_key(key.charCodeAt(0));
+
+  if (result === 0) {
+    miss++;
+    missDisp.textContent = miss;
+    updateDisplay();
+    return;
+  }
+
+  const elapsed = Math.max((performance.now() - startTime) / 1000, 0.001);
+  speedDisp.textContent = (keystrokes / elapsed).toFixed(2);
+
+  if (wasm.instance.exports.engine_finished()) {
+    const pendingEnd = wasm.instance.exports.engine_pending_end();
+
+    if (pendingEnd) {
+      pendingSentenceTimer = setTimeout(() => {
+        pendingSentenceTimer = null;
+        wasm.instance.exports.engine_flush();
+        currentSentence++;
+        if (currentSentence < sentences.length) {
+          loadSentence(currentSentence);
+        } else {
+          alert("終わりだ。");
+        }
+      }, 250);
+      updateDisplay();
+      return;
+    }
+
+    currentSentence++;
+    if (currentSentence < sentences.length) {
+      setTimeout(() => loadSentence(currentSentence), 300);
+    } else {
+      alert("終わりだ。");
+    }
+    return;
+  }
+
+  updateDisplay();
+});
+
+init().catch(err => {
+  console.error(err);
+  jpDiv.textContent = "WASMの読み込みに失敗しました。";
+  romaDiv.textContent = err.message;
+});
+</script></script>
+
+</body>
+</html>
