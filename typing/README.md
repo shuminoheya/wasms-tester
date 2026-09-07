@@ -1,30 +1,36 @@
 # ro-maji-wasm-converter
 
-Japanese romaji typing engine compiled to WebAssembly (WASM).
+Japanese romaji typing engine running in the browser with WebAssembly.
 
-## Contents
+## Files
 
-- `index.html` — browser demo/game UI
-- `romaji_engine.wasm` — compiled WASM engine
+- `index.html` — demo / typing game
+- `romaji_engine.wasm` — compiled WebAssembly engine
 - `romaji_engine.cpp` — WASM source code
+- `README.md` — this document
 
-## Features
+## Put these 4 files together
 
-- Multiple valid romaji input forms
-- `x` / `l` small-kana input
-- Youon (拗音) handling
-- Sokuon `っ` handling
-- `ん` ambiguity handling
-- Foreign-sound kana support
-- Actual accepted input reflected in the sample romaji
-- Browser-side WASM execution
+The HTML loads the WASM with:
 
-## Run locally
+```js
+fetch("./romaji_engine.wasm")
+```
 
-Serve the directory over HTTP. Opening `index.html` directly with `file://`
-may be blocked by the browser's WASM/fetch security rules.
+So `index.html` and `romaji_engine.wasm` must be in the same directory.
 
-Example:
+## GitHub
+
+You can place these four files directly in a repository. For GitHub Pages,
+serve the repository as a static site. The HTML first tries
+`WebAssembly.instantiateStreaming()` and falls back to `fetch()` +
+`WebAssembly.instantiate()` if streaming compilation is not available or
+fails.
+
+## Local test
+
+A local HTTP server is recommended instead of opening `index.html` with
+`file://`:
 
 ```bash
 python3 -m http.server 8000
@@ -32,26 +38,13 @@ python3 -m http.server 8000
 
 Then open:
 
-`http://localhost:8000/`
+```text
+http://localhost:8000/
+```
 
-## GitHub Pages
+## Source
 
-This repository can be published with GitHub Pages.
+The WASM source is `romaji_engine.cpp`.
 
-Keep these two files in the same directory:
-
-- `index.html`
-- `romaji_engine.wasm`
-
-## Source / Build
-
-The WASM engine source is in `romaji_engine.cpp`.
-
-The browser-facing JavaScript is intentionally kept thin: it handles
-keyboard events, calls the WASM exports, and updates the HTML UI.
-The romaji input state/logic lives in the WASM engine.
-
-## License
-
-No license file is included by default. Add the license you prefer before
-publishing if you want to grant reuse rights explicitly.
+The browser JavaScript inside `index.html` is only the WASM/UI bridge:
+keyboard input, WASM calls, and screen updates.

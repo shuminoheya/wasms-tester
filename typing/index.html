@@ -2,28 +2,18 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ローマ字タイピング</title>
   <style>
     body { font-family: sans-serif; padding: 40px; line-height: 1.8; }
     #stats { font-size: 1.2em; margin-bottom: 20px; }
-    #japanese, #romaji {
-      font-size: 1.1em;
-      white-space: pre-wrap;
-      margin-bottom: 10px;
-    }
-    #romaji {
-      border: 1px solid #ccc;
-      padding: 10px;
-      background: #f9f9f9;
-      min-height: 1.8em;
-    }
+    #japanese, #romaji { font-size: 1.1em; white-space: pre-wrap; margin-bottom: 10px; }
+    #romaji { border: 1px solid #ccc; padding: 10px; background: #f9f9f9; min-height: 1.8em; }
     .typed { color: gray; }
     .current { background: yellow; }
   </style>
 </head>
-
 <body>
-
   <iframe width="560" height="315" src="https://www.youtube.com/embed/NfjTGFMMKL0"
     title="YouTube video player" frameborder="0" allowfullscreen></iframe>
 
@@ -39,10 +29,9 @@
 <script>
 /* ============================================================
    WASM ローマ字入力エンジン
-   JS は UI / キーボード / WASM の橋渡しだけを担当。
-   ローマ字候補生成・かな分割・入力状態・正誤判定は WASM 側。
+   JS は UI / キーボード / WASM の橋渡しのみ。
+   ローマ字候補・かな分割・入力状態・正誤判定は WASM 側。
    ============================================================ */
-
 const sentences = [
   { jp: "泡沫、そのまほろば", hira: "うたかた そのまほろば" },
   { jp: "触れたくて", hira: "ふれたくて" },
@@ -96,13 +85,6 @@ const speedDisp = document.getElementById("speed");
 
 function memString(ptr, len) {
   return new TextDecoder().decode(new Uint8Array(memory.buffer, ptr, len));
-}
-
-function copyToWasm(text) {
-  const bytes = new TextEncoder().encode(text);
-  const ptr = wasm.instance.exports.engine_text_ptr();
-  new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
-  return bytes.length;
 }
 
 function candidateAt(index) {
@@ -193,16 +175,38 @@ function loadSentence(n) {
   keystrokes = 0;
   miss = 0;
   startTime = performance.now();
-
   ksDisp.textContent = "0";
   missDisp.textContent = "0";
   speedDisp.textContent = "0.00";
-
   updateDisplay();
 }
 
+async function loadWasm() {
+  const url = "./romaji_engine.wasm";
+
+  try {
+    if (WebAssembly.instantiateStreaming) {
+      try {
+        return await WebAssembly.instantiateStreaming(fetch(url), {});
+      } catch (streamErr) {
+        console.warn("instantiateStreaming failed; falling back to ArrayBuffer", streamErr);
+      }
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`WASM HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const bytes = await response.arrayBuffer();
+    return await WebAssembly.instantiate(bytes, {});
+  } catch (err) {
+    throw new Error(`WASMの読み込みに失敗しました: ${err.message}`);
+  }
+}
+
 async function init() {
-  const result = await WebAssembly.instantiateStreaming(fetch("./romaji_engine_full.wasm"), {});
+  const result = await loadWasm();
   wasm = result;
   memory = wasm.instance.exports.memory;
   loadSentence(currentSentence);
@@ -226,7 +230,7 @@ document.addEventListener("keydown", e => {
   if (e.ctrlKey || e.altKey || e.metaKey) return;
 
   const key = e.key.toLowerCase();
-  if (!/^[a-z]$/.test(key) && key !== "-" && key !== " ") return;
+  if (!/^[a-z]$/.test(key) && !["-", " ", "'"] .includes(key)) return;
 
   keystrokes++;
   ksDisp.textContent = keystrokes;
@@ -251,6 +255,7 @@ document.addEventListener("keydown", e => {
         pendingSentenceTimer = null;
         wasm.instance.exports.engine_flush();
         currentSentence++;
+
         if (currentSentence < sentences.length) {
           loadSentence(currentSentence);
         } else {
@@ -278,7 +283,6 @@ init().catch(err => {
   jpDiv.textContent = "WASMの読み込みに失敗しました。";
   romaDiv.textContent = err.message;
 });
-</script></script>
-
+</script>
 </body>
 </html>

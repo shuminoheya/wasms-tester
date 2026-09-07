@@ -10,32 +10,23 @@ static const int MAX_TOKEN_BYTES=64;
 static const int MAX_TEXT_BYTES=4096;
 static const int MAX_STREAM_BYTES=2048;
 static const int MAX_CAND_BYTES=4096;
-static const uint16_t MEMO_UNKNOWN=0;
 static const uint16_t BOUNDARY_BASE=1024;
 
 struct Token { char kana[MAX_TOKEN_BYTES]; int len; };
-
 static char text_buf[MAX_TEXT_BYTES];
 static char input_text_buf[MAX_TEXT_BYTES];
 static Token tokens[MAX_TOKENS];
 static int token_count=0;
-
-/* The entire typed roman stream. Parsing is redone from this stream after each key.
-   This is what makes ambiguous boundaries such as ん+ね robust. */
 static char typed_stream[MAX_STREAM_BYTES];
 static int typed_len=0;
-
 static char input_buf[MAX_TOKEN_BYTES];
 static int input_len=0;
 static char fixed_buf[MAX_TOKENS][MAX_TOKEN_BYTES];
 static int fixed_len[MAX_TOKENS];
 static int idx_state=0;
 static int ambiguous_end=0;
-
 static char candidate_buf[MAX_CAND_BYTES];
 static int candidate_len=0;
-
-/* Memo: score + generation. MAX_TOKENS x MAX_STREAM_BYTES ~= 2M entries each. */
 static uint16_t memo_score[MAX_TOKENS+1][MAX_STREAM_BYTES+1];
 static uint16_t memo_tag[MAX_TOKENS+1][MAX_STREAM_BYTES+1];
 static uint16_t generation=1;
@@ -45,8 +36,6 @@ static void clear_bytes(char* p,int n){for(int i=0;i<n;++i)p[i]=0;}
 static void smemcpy(char* d,const char* s,int n){for(int i=0;i<n;++i)d[i]=s[i];}
 static bool same_n(const char* a,const char* b,int n){for(int i=0;i<n;++i)if(a[i]!=b[i])return false;return true;}
 static bool ascii_equal(const char* a,int alen,const char* b){int blen=slen(b);return alen==blen&&same_n(a,b,blen);}
-static bool starts_with(const char* s,int slen_,const char* p,int plen){return plen<=slen_&&same_n(s,p,plen);}
-
 static int append_candidate(const char* s){int n=slen(s);if(!n||candidate_len+n+1>=MAX_CAND_BYTES)return 0;smemcpy(candidate_buf+candidate_len,s,n);candidate_len+=n;candidate_buf[candidate_len++]=0;return 1;}
 static bool has_candidate(const char* s){int p=0;while(p<candidate_len){const char* c=candidate_buf+p;if(ascii_equal(c,slen(c),s))return true;p+=slen(c)+1;}return false;}
 static void add_unique(const char* s){if(!has_candidate(s))append_candidate(s);}
@@ -86,7 +75,13 @@ static void add_basic(const char* kana){
 
 static void add_youon(const char* r0,const char* r1,const char* r2,const char* r3,const char* vowel,const char* sx,const char* sl){
   const char* r[4]={r0,r1,r2,r3};
-  for(int i=0;i<4;++i){if(!r[i])continue;char b[40];smemcpy(b,r[i],slen(r[i]));int q=slen(r[i]);smemcpy(b+q,vowel,slen(vowel));b[q+slen(vowel)]=0;add_unique(b);smemcpy(b,r[i],slen(r[i]));q=slen(r[i]);smemcpy(b+q,sx,slen(sx));b[q+slen(sx)]=0;add_unique(b);smemcpy(b,r[i],slen(r[i]));q=slen(r[i]);smemcpy(b+q,sl,slen(sl));b[q+slen(sl)]=0;add_unique(b);}
+  for(int i=0;i<4;++i){
+    if(!r[i])continue;
+    char b[40]; int q=slen(r[i]);
+    smemcpy(b,r[i],q); smemcpy(b+q,vowel,slen(vowel)); b[q+slen(vowel)]=0; add_unique(b);
+    smemcpy(b,r[i],q); smemcpy(b+q,sx,slen(sx)); b[q+slen(sx)]=0; add_unique(b);
+    smemcpy(b,r[i],q); smemcpy(b+q,sl,slen(sl)); b[q+slen(sl)]=0; add_unique(b);
+  }
 }
 
 static void generate_normal_candidates(const char* kana){
@@ -163,7 +158,6 @@ static void tokenize(){
     ++token_count;
   }
 }
-
 static bool is_sokuon(int i){return i>=0&&i<token_count&&ascii_equal(tokens[i].kana,tokens[i].len,"っ");}
 
 static void generate_candidates(int i){
@@ -172,7 +166,7 @@ static void generate_candidates(int i){
     add_unique("xtu"); add_unique("ltu");
     if(i+1<token_count){
       generate_normal_candidates(tokens[i+1].kana);
-      char tmp[MAX_CAND_BYTES]; int n=candidate_len; smemcpy(tmp,candidate_buf,n); candidate_len=0; add_unique("xtu");add_unique("ltu");
+      char tmp[MAX_CAND_BYTES]; int n=candidate_len; smemcpy(tmp,candidate_buf,n); candidate_len=0; add_unique("xtu"); add_unique("ltu");
       int p=0; while(p<n){const char* s=tmp+p; if(s[0]&&s[0]>='a'&&s[0]<='z'&&s[0]!='n'&&s[0]!='a'&&s[0]!='e'&&s[0]!='i'&&s[0]!='o'&&s[0]!='u'&&s[0]!='y'&&s[0]!='w'){char one[2]={s[0],0};add_unique(one);}p+=slen(s)+1;}
     }
     return;
@@ -180,49 +174,28 @@ static void generate_candidates(int i){
   generate_normal_candidates(tokens[i].kana);
 }
 
-/* Returns best parse score from token index i / stream position pos.
-   Boundary scores (>=1024) beat partial-prefix scores (<1024). */
 static uint16_t best_score(int i,int pos){
   if(pos==typed_len) return (uint16_t)(BOUNDARY_BASE+i);
   if(i>=token_count) return 0;
   if(memo_tag[i][pos]==generation) return memo_score[i][pos];
-
-  generate_candidates(i);
-  const int list_len = candidate_len;
-  char local_candidates[MAX_CAND_BYTES];
-  smemcpy(local_candidates, candidate_buf, list_len);
-  uint16_t best=0;
-  int rem=typed_len-pos;
-  int p=0;
-  while(p<list_len){
-    char cand[MAX_TOKEN_BYTES];
-    const char* c=local_candidates+p; int clen=slen(c);
-    if(clen >= MAX_TOKEN_BYTES) { p += clen + 1; continue; }
-    smemcpy(cand,c,clen); cand[clen]=0;
-    if(clen<=rem && same_n(typed_stream+pos,cand,clen)){
-      uint16_t child=best_score(i+1,pos+clen);
-      if(child>best)best=child;
-    } else if(clen>rem && same_n(typed_stream+pos,cand,rem)){
-      uint16_t partial=(uint16_t)(i+1);
-      if(partial>best)best=partial;
-    }
-    p+=clen+1;
-  }
+  generate_candidates(i); const int list_len=candidate_len; char local_candidates[MAX_CAND_BYTES]; smemcpy(local_candidates,candidate_buf,list_len); uint16_t best=0; int rem=typed_len-pos; int p=0;
+  while(p<list_len){const char* c=local_candidates+p; int clen=slen(c); if(clen<MAX_TOKEN_BYTES){
+      if(clen<=rem && same_n(typed_stream+pos,c,clen)){uint16_t child=best_score(i+1,pos+clen); if(child>best)best=child;}
+      else if(clen>rem && same_n(typed_stream+pos,c,rem)){uint16_t partial=(uint16_t)(i+1); if(partial>best)best=partial;}
+    } p+=clen+1;}
   memo_tag[i][pos]=generation; memo_score[i][pos]=best; return best;
 }
-
 static void reset_memo(){++generation;if(generation==0){for(int i=0;i<=MAX_TOKENS;++i)for(int p=0;p<=MAX_STREAM_BYTES;++p)memo_tag[i][p]=0;generation=1;}}
 
 static void recompute_parse(){
-  idx_state=0; input_len=0; clear_bytes(input_buf,sizeof(input_buf)); ambiguous_end=0; for(int i=0;i<token_count;++i){fixed_len[i]=0;clear_bytes(fixed_buf[i],MAX_TOKEN_BYTES);}
+  idx_state=0; input_len=0; clear_bytes(input_buf,sizeof(input_buf)); ambiguous_end=0;
+  for(int i=0;i<token_count;++i){fixed_len[i]=0;clear_bytes(fixed_buf[i],MAX_TOKEN_BYTES);}
   reset_memo(); uint16_t score=best_score(0,0); if(score==0||token_count==0)return;
   int i=0,pos=0;
   while(pos<typed_len && i<token_count){
-    generate_candidates(i); const int list_len = candidate_len; char local_candidates[MAX_CAND_BYTES]; smemcpy(local_candidates,candidate_buf,list_len); int rem=typed_len-pos; bool chosen=false; int p=0;
-    while(p<list_len){const char* c=local_candidates+p;int clen=slen(c);
-      if(clen<=rem && same_n(typed_stream+pos,c,clen)){
-        uint16_t child=best_score(i+1,pos+clen); if(child==score){smemcpy(fixed_buf[i],c,clen);fixed_buf[i][clen]=0;fixed_len[i]=clen;i++;pos+=clen;score=child;chosen=true;break;}
-      }
+    generate_candidates(i); const int list_len=candidate_len; char local_candidates[MAX_CAND_BYTES]; smemcpy(local_candidates,candidate_buf,list_len); int rem=typed_len-pos; bool chosen=false; int p=0;
+    while(p<list_len){const char* c=local_candidates+p; int clen=slen(c);
+      if(clen<=rem && same_n(typed_stream+pos,c,clen)){uint16_t child=best_score(i+1,pos+clen); if(child==score){smemcpy(fixed_buf[i],c,clen);fixed_buf[i][clen]=0;fixed_len[i]=clen;i++;pos+=clen;score=child;chosen=true;break;}}
       p+=clen+1;
     }
     if(chosen)continue;
@@ -230,47 +203,32 @@ static void recompute_parse(){
     break;
   }
   idx_state=i;
-  if(pos==typed_len) { input_len=0; clear_bytes(input_buf,sizeof(input_buf)); }
-  /* A final single n is intentionally considered ambiguous so JS can wait briefly.
-     This permits both n and nn/n' at sentence end without making nn impossible. */
-  if(idx_state==token_count && token_count>0 && fixed_len[token_count-1]==1 && fixed_buf[token_count-1][0]=='n'){
-    generate_normal_candidates(tokens[token_count-1].kana); if(has_candidate("nn")||has_candidate("n'")) ambiguous_end=1;
+  if(pos==typed_len){input_len=0;clear_bytes(input_buf,sizeof(input_buf));}
+  if(idx_state==token_count&&token_count>0&&fixed_len[token_count-1]==1&&fixed_buf[token_count-1][0]=='n'){
+    generate_normal_candidates(tokens[token_count-1].kana); if(has_candidate("nn")||has_candidate("n'"))ambiguous_end=1;
   }
 }
 
 void engine_reset(int count){token_count=count<0?0:(count>MAX_TOKENS?MAX_TOKENS:count);typed_len=0;clear_bytes(typed_stream,MAX_STREAM_BYTES);idx_state=0;input_len=0;ambiguous_end=0;clear_bytes(input_buf,sizeof(input_buf));for(int i=0;i<MAX_TOKENS;++i){fixed_len[i]=0;clear_bytes(fixed_buf[i],MAX_TOKEN_BYTES);}reset_memo();}
-
 void engine_set_text(const char* text,int len){if(!text||len<0)len=0;if(len>=MAX_TEXT_BYTES)len=MAX_TEXT_BYTES-1;if(text==text_buf){smemcpy(input_text_buf,text,len);text=input_text_buf;}clear_bytes(text_buf,MAX_TEXT_BYTES);smemcpy(text_buf,text,len);text_buf[len]=0;tokenize();engine_reset(token_count);}
-
-int engine_input_text_ptr(){return (int)(uintptr_t)input_text_buf;}
 int engine_text_ptr(){return (int)(uintptr_t)text_buf;}
-int engine_text_len(){return slen(text_buf);}
 int engine_count(){return token_count;}
 int engine_idx(){return idx_state;}
 int engine_buffer_ptr(){return (int)(uintptr_t)input_buf;}
 int engine_buffer_len(){return input_len;}
 int engine_fixed_ptr(int index){return index>=0&&index<MAX_TOKENS?(int)(uintptr_t)fixed_buf[index]:0;}
 int engine_fixed_len(int index){return index>=0&&index<MAX_TOKENS?fixed_len[index]:0;}
-int engine_candidate_ptr(){generate_candidates(idx_state);return (int)(uintptr_t)candidate_buf;}
-int engine_candidate_len(){generate_candidates(idx_state);return candidate_len;}
 int engine_candidate_ptr_at(int index){generate_candidates(index);return (int)(uintptr_t)candidate_buf;}
 int engine_candidate_len_at(int index){generate_candidates(index);return candidate_len;}
-int engine_finished(){return idx_state>=token_count && typed_len>0 && input_len==0;}
+int engine_finished(){return idx_state>=token_count&&typed_len>0&&input_len==0;}
 int engine_pending_end(){return ambiguous_end;}
-
 int engine_key(int key){
-  if(!((key>='a'&&key<='z')||key=='-'||key==' '))return 0;
+  if(!((key>='a'&&key<='z')||key=='-'||key==' '||key=='\''))return 0;
   if(typed_len+1>=MAX_STREAM_BYTES)return 0;
-  typed_stream[typed_len++]=(char)key; typed_stream[typed_len]=0;
-  recompute_parse();
+  typed_stream[typed_len++]=(char)key;typed_stream[typed_len]=0;recompute_parse();
   if(best_score(0,0)==0){--typed_len;typed_stream[typed_len]=0;recompute_parse();return 0;}
   return input_len>0?1:2;
 }
-
 void engine_backspace(){if(typed_len>0){--typed_len;typed_stream[typed_len]=0;recompute_parse();}}
-
-/* Force a pending final n to be treated as a completed single n. */
 int engine_flush(){if(ambiguous_end){ambiguous_end=0;return 1;}return 0;}
-
-void engine_sync(){}
 }
