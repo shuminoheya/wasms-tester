@@ -1,0 +1,9 @@
+[
+  [32m'version'[39m,
+  [32m'geo_distance_m'[39m,
+  [32m'ms_to_kmh'[39m,
+  [32m'm_to_ft'[39m,
+  [32m'calc_speed'[39m,
+  [32m'valid_latlon'[39m
+]
+{"version":2,"distance":111.19492664429958,"kmh":36,"ft":328.0839895013123,"speed":10,"valid":1,"invalid":0}
