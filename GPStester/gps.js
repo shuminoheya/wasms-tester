@@ -30,25 +30,24 @@ function update(p){
  last=p;const c=p.coords,now=p.timestamp,lat=c.latitude,lon=c.longitude;
  if(wasm?.valid_latlon&&!wasm.valid_latlon(lat,lon)){log(`WASM: 不正な座標 lat=${lat} lon=${lon}`,"ERROR");return}
  setText("lat",fmt(lat,6));setText("lng",fmt(lon,6));
- if(Number.isFinite(c.altitude)){setText("alt",`${c.altitude.toFixed(1)} m`);setText("altft",`${(wasm?.m_to_ft?wasm.m_to_ft(c.altitude):c.altitude*3.280839895).toFixed(0)} ft`)}
+ if(Number.isFinite(c.altitude)){setText("alt",`${c.altitude.toFixed(1)} m`);setText("altFt",`${(wasm?.m_to_ft?wasm.m_to_ft(c.altitude):c.altitude*3.280839895).toFixed(0)} ft`)}
  else{setText("alt","N/A（端末が高度を返していません）");setText("altFt","N/A")}
  let sp=null,src="GPS";
  if(Number.isFinite(c.speed)&&c.speed>=0)sp=c.speed;
  else if(prev){const dt=(now-prev.t)/1000,d=geoDistance(prev,{lat,lon});if(dt>0&&dt<120&&d>=0){sp=wasm?.calc_speed?wasm.calc_speed(d,dt):d/dt;src="位置差分計算"}}
  setText("speed",sp!==null?`${sp.toFixed(2)} m/s (${(wasm?.ms_to_kmh?wasm.ms_to_kmh(sp):sp*3.6).toFixed(1)} km/h)`:"N/A（端末が速度を返していません）");
- setText("headingSource",h?.s||"N/A");setText("accuracy",Number.isFinite(c.accuracy)?`${c.accuracy.toFixed(1)} m`:"N/A");
- const h=gpsHeading(c);setText("heading",h?`${h.v.toFixed(1)}°`:"N/A");
+ const h=gpsHeading(c);setText("heading",h?`${h.v.toFixed(1)}°`:"N/A");setText("headingSource",h?h.s:"N/A");setText("accuracy",Number.isFinite(c.accuracy)?`${c.accuracy.toFixed(1)} m`:"N/A");
  setText("updated",new Date(now).toLocaleString());$("status").textContent=`GPS受信中 / ${mode}`;
  prev={lat,lon,t:now};
  if(marker)marker.setLatLng([lat,lon]);if(accuracyCircle)accuracyCircle.setLatLng([lat,lon]).setRadius(c.accuracy||0);
  if(map&&$("follow")?.checked&&!customBounds)map.setView([lat,lon],Math.max(map.getZoom(),15),{animate:false});
  log(`GPS: lat=${lat}, lon=${lon}, alt=${c.altitude}, speed=${c.speed}, heading=${c.heading}, acc=${c.accuracy}`);
 }
-function err(e){const names={1:"PERMISSION_DENIED",2:"POSITION_UNAVAILABLE",3:"TIMEOUT"};$("status").textContent=`GPSエラー: ${names[e.code]||e.code}`;log(`Geolocation error: code=${e.code} ${names[e.code]||"UNKNOWN"} ${e.message}`,"ERROR")}
+function err(e){const names={1:"PERMISSION_DENIED",2:"POSITION_UNAVAILABLE",3:"TIMEOUT"};const n=names[e.code]||e.code;if(e.code===3){$("status").textContent="GPS測位待ち（監視継続中）";log(`Geolocation error: code=${e.code} ${n} ${e.message} → watchPosition継続 / 次の測位を待機`,"WARN")}else if(e.code===2){$("status").textContent="GPS位置取得不能（再取得待ち）";log(`Geolocation error: code=${e.code} ${n} ${e.message} → watchPosition継続`,"WARN")}else{$("status").textContent=`GPSエラー: ${n}`;log(`Geolocation error: code=${e.code} ${n} ${e.message}`,"ERROR")}}
 function start(){
  if(!navigator.geolocation){$("status").textContent="Geolocation非対応";return}
  stop(false);prev=null;const opt={normal:{enableHighAccuracy:true,timeout:10000,maximumAge:0},airplane:{enableHighAccuracy:true,timeout:15000,maximumAge:0},train:{enableHighAccuracy:true,timeout:15000,maximumAge:3000}}[mode];
- log(`GPS開始 mode=${mode} options=${JSON.stringify(opt)}`);watchId=navigator.geolocation.watchPosition(update,err,opt);$("status").textContent="GPS取得開始";
+ log(`GPS開始 mode=${mode} options=${JSON.stringify(opt)}`);watchId=navigator.geolocation.watchPosition(update,err,opt);$("status").textContent="GPS測位待ち（リアルタイム監視中）";
 }
 function stop(write=true){if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;if(write)log("GPS停止")}}
 async function address(){
