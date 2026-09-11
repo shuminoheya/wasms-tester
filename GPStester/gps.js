@@ -29,16 +29,16 @@ function setText(id,v){if($(id))$(id).textContent=v}
 function update(p){
  last=p;const c=p.coords,now=p.timestamp,lat=c.latitude,lon=c.longitude;
  if(wasm?.valid_latlon&&!wasm.valid_latlon(lat,lon)){log(`WASM: 不正な座標 lat=${lat} lon=${lon}`,"ERROR");return}
- setText("lat",fmt(lat,6));setText("lon",fmt(lon,6));
+ setText("lat",fmt(lat,6));setText("lng",fmt(lon,6));
  if(Number.isFinite(c.altitude)){setText("alt",`${c.altitude.toFixed(1)} m`);setText("altft",`${(wasm?.m_to_ft?wasm.m_to_ft(c.altitude):c.altitude*3.280839895).toFixed(0)} ft`)}
- else{setText("alt","N/A（端末が高度を返していません）");setText("altft","N/A")}
+ else{setText("alt","N/A（端末が高度を返していません）");setText("altFt","N/A")}
  let sp=null,src="GPS";
  if(Number.isFinite(c.speed)&&c.speed>=0)sp=c.speed;
  else if(prev){const dt=(now-prev.t)/1000,d=geoDistance(prev,{lat,lon});if(dt>0&&dt<120&&d>=0){sp=wasm?.calc_speed?wasm.calc_speed(d,dt):d/dt;src="位置差分計算"}}
  setText("speed",sp!==null?`${sp.toFixed(2)} m/s (${(wasm?.ms_to_kmh?wasm.ms_to_kmh(sp):sp*3.6).toFixed(1)} km/h)`:"N/A（端末が速度を返していません）");
- setText("source",src);setText("accuracy",Number.isFinite(c.accuracy)?`${c.accuracy.toFixed(1)} m`:"N/A");
+ setText("headingSource",h?.s||"N/A");setText("accuracy",Number.isFinite(c.accuracy)?`${c.accuracy.toFixed(1)} m`:"N/A");
  const h=gpsHeading(c);setText("heading",h?`${h.v.toFixed(1)}°`:"N/A");
- setText("time",new Date(now).toLocaleString());$("status").textContent=`GPS受信中 / ${mode}`;
+ setText("updated",new Date(now).toLocaleString());$("status").textContent=`GPS受信中 / ${mode}`;
  prev={lat,lon,t:now};
  if(marker)marker.setLatLng([lat,lon]);if(accuracyCircle)accuracyCircle.setLatLng([lat,lon]).setRadius(c.accuracy||0);
  if(map&&$("follow")?.checked&&!customBounds)map.setView([lat,lon],Math.max(map.getZoom(),15),{animate:false});
